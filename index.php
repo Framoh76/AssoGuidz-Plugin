@@ -71,8 +71,8 @@ function wpm_add_taxonomies() {
 add_action( 'init', 'wpm_custom_post_type', 0 );
 
 function script() {
-    wp_enqueue_style( 'style', plugin_dir_url('') . 'assoguidz/app.css');
-    wp_enqueue_script("app", plugin_dir_url('') . 'assoguidz/app.js');
+    wp_enqueue_style( 'style', plugin_dir_url('') . 'AssoGuidz-Plugin/app.css');
+    wp_enqueue_script("app", plugin_dir_url('') . 'AssoGuidz-Plugin/app.js');
 }
 
 add_action( 'wp_enqueue_scripts', 'script');
