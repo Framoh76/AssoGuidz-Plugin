@@ -1,0 +1,2 @@
+# AssoGuidz-Plugin
+Assoguidz
