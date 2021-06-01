@@ -16,13 +16,12 @@ echo "<table class='table'>";
 	?>
 
 	<tr>
-		<th>Nom de la activite</th>
+		<th>Lien</th>
+		<th>Nom de l'activité</th>
 		<th>Sous-titre</th>
 		<th>Prix</th>
 		<th>Image</th>
-		<th>Visible</th>
-		<th>Lien</th>
-		<th>Modifier</th>
+		<th>Visibilité</th>
 		<th>Contenu</th>
 		<th>Date d'expiration</th>
 	</tr>
@@ -31,7 +30,10 @@ echo "<table class='table'>";
 foreach ($posts as $post) {
 	if ($post->post_title != "add") {
 		echo "<tr>";
-			echo "<th>" . $post->post_title . "</th>";
+		
+			echo '<td><a href="' . get_permalink() . '?action=display"><span class="dashicons dashicons-external"></span></a></td>';
+
+			echo '<th><a href="' . get_permalink() . '?action=edit">' .  $post->post_title . "</a></th>";
 
 			if (!empty(get_post_meta($post->ID, 'sub_title', true))) {
 				echo "<td>" . get_post_meta($post->ID, 'sub_title', true) . "</td>";
@@ -56,9 +58,6 @@ foreach ($posts as $post) {
 			} else {
 				echo '<td><input type="checkbox" id="visibility" name="visibility" disabled </td>';
 			}
-
-			echo '<td><a href="' . get_permalink() . '?action=display">LIEN</a></td>';
-			echo '<td><a href="' . get_permalink() . '?action=edit">EDIT</a></td>';
 
 			echo "<td>" . $post->post_content . "</td>";
 

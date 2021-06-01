@@ -13,12 +13,13 @@ const NOMBRE_PROGRAMME = 10;
 
 ?>
 
-<body onload="initElement();">
+<body>
 <?php
 $post = get_post();
-
+var_dump($_POST);
 if (isset($_POST['form_action'])) {
 	if ($_POST['form_action'] == "save") {
+		echo "save";
 		// Post publique ou privée ?
 		if (isset($_POST['visibility']))
 			$publication = "publish";
@@ -35,6 +36,7 @@ if (isset($_POST['form_action'])) {
 			);
 			$id = wp_insert_post($my_post);
 		} else {
+			echo "save2";
 			$my_post = array(
 				'ID'			=> $post->ID,
 				'post_title'    => wp_strip_all_tags($_POST['title']),
@@ -54,8 +56,6 @@ if (isset($_POST['form_action'])) {
 		if (!function_exists( 'wp_handle_upload' )) {
 			require_once( ABSPATH . 'wp-admin/includes/file.php' );
 		}
-		
-		var_dump($_FILES);
 
 		if ($_FILES['image']['name'] != '') { 
 			$uploadedfile = $_FILES['image'];
@@ -91,9 +91,9 @@ if (isset($_POST['form_action'])) {
 		update_post_meta( $id, 'reserver', $_POST['reserver']);
 		update_post_meta( $id, 'lieu', $_POST['lieu']);
 		update_post_meta( $id, 'date', $_POST['date']);			
-		update_post_meta( $id, 'horraire', $_POST['horraire']);
+		update_post_meta( $id, 'horaire', $_POST['horaire']);
 		wp_set_post_terms( $id, $_POST['type_activite'], 'type_activite');
-		
+
 		for ($i=0; $i < NOMBRE_PROGRAMME; $i++) { 
 			if (isset($_POST['p_title_' . $i]) && isset($_POST['p_content_' . $i]) && isset($_FILES['p_image_' . $i])){
 				update_post_meta( $id, 'programme_title_' . $i, $_POST['p_title_' . $i]);
@@ -121,11 +121,13 @@ if (isset($_POST['form_action'])) {
 						echo "Un problème est survenue";
 					}
 				}
+				update_post_meta( $id, 'programme_count', $i);
 			}
 		}
 	}
 }
 if ($post) {
+	var_dump($post);
 	if ($post->post_title != 'add') {
 		$title = $post->post_title;
 		if (get_post_meta($post->ID, 'sub_title', true) != null)
@@ -150,8 +152,8 @@ if ($post) {
 			$lieu = get_post_meta($post->ID, 'lieu', true);
 		if (get_post_meta($post->ID, 'date', true) != null)
 			$date = get_post_meta($post->ID, 'date', true);
-		if (get_post_meta($post->ID, 'horraire', true) != null)
-			$horraire = get_post_meta($post->ID, 'horraire', true);
+		if (get_post_meta($post->ID, 'horaire', true) != null)
+			$horaire = get_post_meta($post->ID, 'horaire', true);
 		if (wp_get_post_terms($id, 'type_activite') != null)
 			$type_activite = wp_get_post_terms($post->ID, 'type_activite');
 		$content = $post->post_content;
@@ -185,7 +187,7 @@ if ($post) {
 						echo '<p class="date">' . $date . '</p>';
 
 					if ($duree != "")
-						echo '<p class="horraire">' . $horraire . '</p>';
+						echo '<p class="horaire">' . $horaire . '</p>';
 					
 					if ($prix != "")
 						echo '<p class="prix">Tarif ' . $prix . '€</p>';
@@ -254,7 +256,7 @@ if ($post) {
 								</div>
 								<div class="row">
 									<div class="col-2">
-										<label for="content">Conférencier: </label> 
+										<label for="conferencier">Conférencier: </label> 
 									</div>
 									<div class="col">
 										<input class="form-control" type="text" id="conferencier" name="conferencier" value="<?php echo $conferencier ?>">
@@ -266,18 +268,21 @@ if ($post) {
 									</div>
 									<div class="col">
 										<?php 
-											$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
-											
-											$name = "content";
-											wp_editor(
-												'',
-												$name,
-												array(
-													'media_buttons' => false,
-													'tinymce'       => false,
-													'quicktags'     => $quicktags_settings,
-												)
+											$settings =   array(
+												'wpautop' => true, // use wpautop?
+												'media_buttons' => true, // show insert/upload button(s)
+												'textarea_name' => $name, // set the textarea name to something different, square brackets [] can be used here
+												'textarea_rows' => get_option('default_post_edit_rows', 10), // rows="..."
+												'tabindex' => '',
+												'editor_css' => '', //  extra styles for both visual and HTML editors buttons, 
+												'editor_class' => '', // add extra class(es) to the editor textarea
+												'teeny' => false, // output the minimal editor config used in Press This
+												'dfw' => false, // replace the default fullscreen with DFW (supported on the front-end in WordPress 3.4)
+												'tinymce' => true, // load TinyMCE, can be used to pass settings directly to TinyMCE using an array()
+
+												'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
 											);
+											wp_editor($content, 'content', $settings);
 										?>
 									</div>
 								</div>
@@ -328,7 +333,7 @@ if ($post) {
 										<input class="form-control" type="number" name="quantite" id="quantite" value="<?php echo $quantite ?>">
 									</div>
 									<div class="col-2">
-										<label for="image">Reservé:</label>
+										<label for="image">Réservé:</label>
 									</div>
 									<div class="col-2">
 										<input class="form-control" type="number" name="reserver" id="reserver" value="<?php echo $reserver ?>">
@@ -350,10 +355,10 @@ if ($post) {
 										<input class="form-control" type="text" id="date" name="date" value="<?php echo $date ?>">
 									</div>
 									<div class="col-2">
-										<label for="horraire">Horraire:</label>
+										<label for="horaire">Horaire:</label>
 									</div>
 									<div class="col-4">
-										<input class="form-control" type="text" name="horraire" id="horraire" value="<?php echo $horraire ?>">
+										<input class="form-control" type="text" name="horaire" id="horaire" value="<?php echo $horaire ?>">
 									</div>
 								</div>
 								<div class="row">
@@ -373,7 +378,7 @@ if ($post) {
 											<option>Veuillez choisir le type de votre activité</option>
 											<option value="conference" <?php if ($type_activite[0]->name == 'conference') echo ' selected '; ?>">Conférence en salle</option>
 											<option value="visio_conference" <?php if ($type_activite[0]->name == 'visio_conference') echo ' selected '; ?>">Visio-conférence</option>
-											<option value="visite_in_situ" <?php if ($type_activite[0]->name == 'visite_in_situ') echo ' selected '; ?>">Visite in stitu</option>
+											<option value="visite_in_situ" <?php if ($type_activite[0]->name == 'visite_in_situ') echo ' selected '; ?>">Visite in situ</option>
 										</select>
 									</div>
 								</div>
@@ -382,8 +387,9 @@ if ($post) {
 				</div>
 
 				<div class="row justify-content-center">
-					<div class="col-10">
-						<h2>Programme (Max 10) <span id="showProgramme" class="dashicons dashicons-plus-alt"></span> </h2>
+					<div class="col-10">				
+						<h2>Programme (Max 10) <span onclick="showProgramme()" id="showProgramme" class="dashicons dashicons-plus-alt"></span> </h2>
+						<input type="hidden" id="programme_count" value="<?php echo get_post_meta($post->ID, 'programme_count' , true) != null ? get_post_meta($post->ID, 'programme_count' , true) : 0; ?>">
 						<?php for ($i=0; $i < NOMBRE_PROGRAMME; $i++) { ?>
 						<div id="programme_<?php echo $i ?>" class="programme_<?php echo $i ?>">
 							<label for="p_title">Titre : </label>
@@ -406,9 +412,9 @@ if ($post) {
 
 									'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
 								);
-								wp_editor('', $name, $settings);
+								wp_editor($programme[$i]['p_content'], $name, $settings);
 							?>
-							<textarea class="form-control" id="<?php echo "p_content_" . $i; ?>" name="<?php echo "p_content_" . $i; ?>" value=""><?php echo $programme[$i]['p_content']; ?></textarea>
+							
 							<div class="row">
 								<div class="col-2">
 									<label for="p_image_<?php echo $i ?>">Image:</label>
@@ -437,11 +443,15 @@ if ($post) {
 						}
 						?>
 						<input type="hidden" name="form_action" value="save">
-						<input class="form-control" type="submit">
+						<input class="form-control" type="submit" value="Enregistrer">
 					</div>
 				</div>
 			</div>
 		</form>
+		<script type="text/javascript">
+			afficheProgramme();
+			autreProgramme();
+		</script>
 	<?php
 	}
 echo '</body>';
