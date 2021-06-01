@@ -10,6 +10,7 @@
  */
 get_header();
 const NOMBRE_PROGRAMME = 10;
+
 ?>
 
 <body onload="initElement();">
@@ -54,24 +55,28 @@ if (isset($_POST['form_action'])) {
 			require_once( ABSPATH . 'wp-admin/includes/file.php' );
 		}
 		
-		$uploadedfile = $_FILES['image'];
-		$upload_overrides = array( 'test_form' => false );
-		$movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
-		if ( $movefile ) {
-			update_post_meta( $id, 'image', $movefile['url']);
-			$wp_filetype = $movefile['type'];
-			$attachment = array(
-				'guid' => $wp_upload_dir['url'] . '/' . basename($uploadedfile['name']),
-				'post_mime_type' => $wp_filetype,
-				'post_title' => preg_replace('/\.[^.]+$/', '', basename($uploadedfile['name'])),
-				'post_content' => '',
-				'post_status' => 'inherit'
-			);
-			require_once( ABSPATH . 'wp-admin/includes/image.php' );
-			$attach_id = wp_insert_attachment( $attachment, $uploadedfile['name'], $id);
-			$attach_data = wp_generate_attachment_metadata( $attach_id, $uploadedfile );
-		} else {
-			echo "Un problème est survenue";
+		var_dump($_FILES);
+
+		if ($_FILES['image']['name'] != '') { 
+			$uploadedfile = $_FILES['image'];
+			$upload_overrides = array( 'test_form' => false );
+			$movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
+			if ( $movefile ) {
+				update_post_meta( $id, 'image', $movefile['url']);
+				$wp_filetype = $movefile['type'];
+				$attachment = array(
+					'guid' => $wp_upload_dir['url'] . '/' . basename($uploadedfile['name']),
+					'post_mime_type' => $wp_filetype,
+					'post_title' => preg_replace('/\.[^.]+$/', '', basename($uploadedfile['name'])),
+					'post_content' => '',
+					'post_status' => 'inherit'
+				);
+				require_once( ABSPATH . 'wp-admin/includes/image.php' );
+				$attach_id = wp_insert_attachment( $attachment, $uploadedfile['name'], $id);
+				$attach_data = wp_generate_attachment_metadata( $attach_id, $uploadedfile );
+			} else {
+				echo "Un problème est survenue";
+			}
 		}
 
 		if (isset($_POST['visibility']))
@@ -94,26 +99,27 @@ if (isset($_POST['form_action'])) {
 				update_post_meta( $id, 'programme_title_' . $i, $_POST['p_title_' . $i]);
 				update_post_meta( $id, 'programme_content_' . $i, $_POST['p_content_' . $i]);
 
+				if ($_FILES['p_image_' . $i]['name'] != '') { 
+					$uploadedfile = $_FILES['p_image_' . $i];
 
-				$uploadedfile = $_FILES['p_image_' . $i];
-
-				$upload_overrides = array( 'test_form' => false );
-				$movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
-				if ( $movefile ) {
-					update_post_meta( $id, 'programme_image_' . $i, $movefile['url']);
-					$wp_filetype = $movefile['type'];
-					$attachment = array(
-						'guid' => $wp_upload_dir['url'] . '/' . basename($uploadedfile['name']),
-						'post_mime_type' => $wp_filetype,
-						'post_title' => preg_replace('/\.[^.]+$/', '', basename($uploadedfile['name'])),
-						'post_content' => '',
-						'post_status' => 'inherit'
-					);
-					require_once( ABSPATH . 'wp-admin/includes/image.php' );
-					$attach_id = wp_insert_attachment( $attachment, $uploadedfile['name'], $id);
-					$attach_data = wp_generate_attachment_metadata( $attach_id, $uploadedfile );
-				} else {
-					echo "Un problème est survenue";
+					$upload_overrides = array( 'test_form' => false );
+					$movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
+					if ( $movefile ) {
+						update_post_meta( $id, 'programme_image_' . $i, $movefile['url']);
+						$wp_filetype = $movefile['type'];
+						$attachment = array(
+							'guid' => $wp_upload_dir['url'] . '/' . basename($uploadedfile['name']),
+							'post_mime_type' => $wp_filetype,
+							'post_title' => preg_replace('/\.[^.]+$/', '', basename($uploadedfile['name'])),
+							'post_content' => '',
+							'post_status' => 'inherit'
+						);
+						require_once( ABSPATH . 'wp-admin/includes/image.php' );
+						$attach_id = wp_insert_attachment( $attachment, $uploadedfile['name'], $id);
+						$attach_data = wp_generate_attachment_metadata( $attach_id, $uploadedfile );
+					} else {
+						echo "Un problème est survenue";
+					}
 				}
 			}
 		}
@@ -262,7 +268,7 @@ if ($post) {
 										<?php 
 											$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
 											
-											$name = "p_content_" . $i;
+											$name = "content";
 											wp_editor(
 												'',
 												$name,
@@ -365,7 +371,7 @@ if ($post) {
 									<div class="col">
 										<select id="type_activite" name="type_activite" class="form-control">
 											<option>Veuillez choisir le type de votre activité</option>
-											<option value="conference" <?php if ($type_activite[0]->name == 'conference') echo ' selected '; ?>">Conférence</option>
+											<option value="conference" <?php if ($type_activite[0]->name == 'conference') echo ' selected '; ?>">Conférence en salle</option>
 											<option value="visio_conference" <?php if ($type_activite[0]->name == 'visio_conference') echo ' selected '; ?>">Visio-conférence</option>
 											<option value="visite_in_situ" <?php if ($type_activite[0]->name == 'visite_in_situ') echo ' selected '; ?>">Visite in stitu</option>
 										</select>
@@ -384,14 +390,22 @@ if ($post) {
 							<input class="form-control" type="text" id="<?php echo "p_title_" . $i; ?>" name="<?php echo "p_title_" . $i; ?>" value="<?php echo $programme[$i]['p_title']; ?>">
 							<label for="p_content">Description : </label>
 							<?php 
-								$settings = array( 
-									'wpautop' => false, 
-									'media_buttons' => false, 
-									'quicktags' => array(
-										'buttons' => 'strong,em,del,ul,ol,li,block,close'
-									)
-								);
+							
 								$name = "p_content_" . $i;
+								$settings =   array(
+									'wpautop' => true, // use wpautop?
+									'media_buttons' => true, // show insert/upload button(s)
+									'textarea_name' => $name, // set the textarea name to something different, square brackets [] can be used here
+									'textarea_rows' => get_option('default_post_edit_rows', 10), // rows="..."
+									'tabindex' => '',
+									'editor_css' => '', //  extra styles for both visual and HTML editors buttons, 
+									'editor_class' => '', // add extra class(es) to the editor textarea
+									'teeny' => false, // output the minimal editor config used in Press This
+									'dfw' => false, // replace the default fullscreen with DFW (supported on the front-end in WordPress 3.4)
+									'tinymce' => true, // load TinyMCE, can be used to pass settings directly to TinyMCE using an array()
+
+									'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
+								);
 								wp_editor('', $name, $settings);
 							?>
 							<textarea class="form-control" id="<?php echo "p_content_" . $i; ?>" name="<?php echo "p_content_" . $i; ?>" value=""><?php echo $programme[$i]['p_content']; ?></textarea>
@@ -399,9 +413,9 @@ if ($post) {
 								<div class="col-2">
 									<label for="p_image_<?php echo $i ?>">Image:</label>
 								</div>
-								<div class="col-10">
+								<div class="col-5">
 									<input class="form-control" type="file" name="p_image_<?php echo $i ?>" id="p_image_<?php echo $i ?>">
-									<?php if ($image != "") { ?>
+									<?php if ($programme[$i]['p_image'] != "") { ?>
 										<div class="col-3">
 											<img src="<?php echo $programme[$i]['p_image'] ?>" width="100" height="100">
 										</div>
