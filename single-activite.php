@@ -8,18 +8,18 @@
  * @subpackage Twenty_Twenty_One
  * @since Twenty Twenty-One 1.0
  */
-get_header();
-const NOMBRE_PROGRAMME = 10;
 
+const NOMBRE_PROGRAMME = 10;
+if (!isset($_POST['new'])) {
+	get_header();
+}
 ?>
 
 <body>
 <?php
-$post = get_post();
-var_dump($_POST);
 if (isset($_POST['form_action'])) {
 	if ($_POST['form_action'] == "save") {
-		echo "save";
+		
 		// Post publique ou privée ?
 		if (isset($_POST['visibility']))
 			$publication = "publish";
@@ -27,17 +27,17 @@ if (isset($_POST['form_action'])) {
 			$publication = "private";
 
 		if ($_POST['new']) {
-			$my_post = array(
+			$my_post_array = array(
 				'post_title'    => wp_strip_all_tags($_POST['title']),
 				'post_content'  => $_POST['content'],
 				'post_status'   => $publication,
 				'post_author'   => 'author',
 				'post_type' 	=> 'activite'
 			);
-			$id = wp_insert_post($my_post);
+			$id = wp_insert_post($my_post_array);
+			$post = get_post($id);
 		} else {
-			echo "save2";
-			$my_post = array(
+			$my_post_array = array(
 				'ID'			=> $post->ID,
 				'post_title'    => wp_strip_all_tags($_POST['title']),
 				'post_content'  => $_POST['content'],
@@ -45,8 +45,8 @@ if (isset($_POST['form_action'])) {
 				'post_author'   => 'author',
 				'post_type' 	=> 'activite'
 			);
-			$id = $post->ID;
-			wp_update_post($my_post);
+			$id = wp_update_post($my_post_array, true);
+			$post = get_post($id);
 		}
 
 		// Update
@@ -94,6 +94,8 @@ if (isset($_POST['form_action'])) {
 		update_post_meta( $id, 'horaire', $_POST['horaire']);
 		wp_set_post_terms( $id, $_POST['type_activite'], 'type_activite');
 
+		$nb_programme = 0;
+
 		for ($i=0; $i < NOMBRE_PROGRAMME; $i++) { 
 			if (isset($_POST['p_title_' . $i]) && isset($_POST['p_content_' . $i]) && isset($_FILES['p_image_' . $i])){
 				update_post_meta( $id, 'programme_title_' . $i, $_POST['p_title_' . $i]);
@@ -121,13 +123,20 @@ if (isset($_POST['form_action'])) {
 						echo "Un problème est survenue";
 					}
 				}
-				update_post_meta( $id, 'programme_count', $i);
+
+				if ($_POST['p_title_' . $i] != '') {
+					$nb_programme++;
+				}	
 			}
 		}
+
+		update_post_meta( $id, 'programme_count', $nb_programme);
+		
+		header('Location: '. get_site_url() . '/archives-des-activites/');
 	}
 }
+
 if ($post) {
-	var_dump($post);
 	if ($post->post_title != 'add') {
 		$title = $post->post_title;
 		if (get_post_meta($post->ID, 'sub_title', true) != null)
@@ -222,9 +231,8 @@ if ($post) {
 					</div>
 					<div class="col6">
 					<?php
-						echo '<img src="' . $programme[$i]['p_image'] . '">';
+						echo '<img src="' . $programme[$i]['p_image'] . '" width="500px" height="300px">';
 					?>
-											 
 					</div>
 				<?php } } ?>
 				<hr>
@@ -268,6 +276,7 @@ if ($post) {
 									</div>
 									<div class="col">
 										<?php 
+											$name = 'content';
 											$settings =   array(
 												'wpautop' => true, // use wpautop?
 												'media_buttons' => true, // show insert/upload button(s)
@@ -282,7 +291,8 @@ if ($post) {
 
 												'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
 											);
-											wp_editor($content, 'content', $settings);
+											
+											wp_editor($content, $name , $settings);
 										?>
 									</div>
 								</div>
@@ -450,7 +460,6 @@ if ($post) {
 		</form>
 		<script type="text/javascript">
 			afficheProgramme();
-			autreProgramme();
 		</script>
 	<?php
 	}
