@@ -9,14 +9,27 @@
  * @since Twenty Twenty-One 1.0
  */
 
+function add_WOOCOMERCE_Product( $title, $description, $price) {
+
+	$post_id = wp_update_post( array(
+		'post_title' => $title,
+		'post_content' => $description,
+		'post_status' => 'publish',
+		'post_type' => "product",
+	) );
+
+	wp_set_object_terms( $post_id, 'simple', 'product_type' );
+	update_post_meta( $post_id, '_price', $price );
+}
+
 const NOMBRE_PROGRAMME = 10;
 if (!isset($_POST['new'])) {
 	get_header();
 }
-?>
 
-<body>
-<?php
+$id_post = url_to_postid( $_SERVER['REQUEST_URI'] );
+$post = get_post( $id_post);
+
 if (isset($_POST['form_action'])) {
 	if ($_POST['form_action'] == "save") {
 		
@@ -132,6 +145,8 @@ if (isset($_POST['form_action'])) {
 
 		update_post_meta( $id, 'programme_count', $nb_programme);
 		
+		//add_WOOCOMERCE_Product( $_POST['title'], $_POST['content'], $_POST['prix']);
+
 		header('Location: '. get_site_url() . '/archives-des-activites/');
 	}
 }
@@ -300,12 +315,16 @@ if ($post) {
 								<label for="visibility">Visibilité : </label> 
 
 								<?php
-								if ($visibility == "true") {
-									echo '<input type="checkbox" id="visibility" name="visibility" value="true" checked>';
-								}
-								else {
-									echo '<input type="checkbox" id="visibility" name="visibility" value="true" >';
-								}
+									if ($post->post_title == 'add') {
+										echo '<input type="checkbox" id="visibility" name="visibility" value="true" checked>';
+									} else {
+										if ($visibility == "true") {
+											echo '<input type="checkbox" id="visibility" name="visibility" value="true" checked>';
+										}
+										else {
+											echo '<input type="checkbox" id="visibility" name="visibility" value="true" >';
+										}
+									}
 								?>
 
 								<div class="row">
@@ -395,7 +414,6 @@ if ($post) {
 							</div>
 					</div>
 				</div>
-
 				<div class="row justify-content-center">
 					<div class="col-10">				
 						<h2>Programme (Max 10) <span onclick="showProgramme()" id="showProgramme" class="dashicons dashicons-plus-alt"></span> </h2>
@@ -445,7 +463,7 @@ if ($post) {
 				</div>
 				<div class="row justify-content-center">
 					<div class="col-10">
-						<?php if ($post->post_title == "add") { ?>
+						<?php if ($post->post_name == "add") { ?>
 							<input type="hidden" name="new" value="1">
 						<?Php } else { ?>
 							<input type="hidden" name="new" value="0">

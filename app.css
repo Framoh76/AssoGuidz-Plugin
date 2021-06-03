@@ -1,3 +1,12 @@
 .programme_0, .programme_1, .programme_2, .programme_3, .programme_4, .programme_5, .programme_6, .programme_7, .programme_8, .programme_9 {
     display: none;
 }
+
+.menu {
+    display: flex;
+    flex-direction: row;
+}
+
+ul {
+    list-style: none;
+}

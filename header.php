@@ -11,6 +11,7 @@
  * @since Twenty Twenty-One 1.0
  */
 
+	error_reporting(E_ALL);
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?> <?php twentytwentyone_the_html_classes(); ?>>
@@ -38,81 +39,99 @@ $mainTypes = array('Conférences', 'Visite in situ');
 
 $posts = get_posts($type);
 
+// Liste des menues d'entête
+$menu = get_term_by('name', 'menu', 'nav_menu');
+$menu_id = $menu->term_id;
+
 foreach ($mainTypes as $mainType) {
+	// Ajoute les menus d'entête dans le menu principal
+	$item_id = add_menu_item($mainType, $menu_id, $menu_id);
 
-	$menu = get_term_by('name', 'menu', 'nav_menu');
-	$menu_id = $menu->term_id;
-
-	wp_update_nav_menu_item($menu_id, 0, array(
-		'menu-item-title' => $mainType,
-		'menu-item-object' => 'post',
-		'menu-item-status' => 'publish',
-		'menu-item-type' => 'activite',
-	));
-
+	// Ajoute les sous-menus
 	if ($mainType == 'Conférences') {
-		wp_update_nav_menu_item($menu_id, 0, array(
-			'menu-item-title' => 'Conférences en salle',
-			'menu-item-object' => 'post',
-			'menu-item-status' => 'publish',
-			'menu-item-type' => 'activite',
-		));
 
-		foreach ($posts as $post) {
-			if ($post->post_title != "add") {
-				$type = get_the_terms($post->ID, 'type_activite');
-				if ( $type[0]->slug == 'conference') {
-					wp_update_nav_menu_item($menu_id, 0, array(
-						'menu-item-title' => $post->post_title,
-						'menu-item-object' => get_permalink(),
-						'menu-item-status' => 'publish',
-						'menu-item-type' => 'activite',
-					));
-				}
-			}
-		}
+		$id = add_menu_item('Conférences en salle', $item_id, $menu_id);
 
-		wp_update_nav_menu_item($menu_id, 0, array(
-			'menu-item-title' => 'Visio conférence',
-			'menu-item-object' => 'post',
-			'menu-item-status' => 'publish',
-			'menu-item-type' => 'activite',
-		));
+		add_post_item($id, $posts, $menu_id, 'conference');
 
-		foreach ($posts as $post) {
-			if ($post->post_title != "add") {
-				$type = get_the_terms($post->ID, 'type_activite');
-				if ( $type[0]->slug == 'visio_conference') {
-					wp_update_nav_menu_item($menu_id, 0, array(
-						'menu-item-title' => $post->post_title,
-						'menu-item-object' => get_permalink(),
-						'menu-item-status' => 'publish',
-						'menu-item-type' => 'activite',
-					));
-				}
-			}
-		}
-	}
+		$id = add_menu_item('Visio conférence', $item_id, $menu_id);
 
-	foreach ($posts as $post) {
-		if ($post->post_title != "add") {
-			$type = get_the_terms($post->ID, 'type_activite');
-			if ( $type[0]->slug == 'visite_in_situ') {
-				wp_update_nav_menu_item($menu_id, 0, array(
-					'menu-item-title' => $post->post_title,
-					'menu-item-object' => get_permalink(),
-					'menu-item-status' => 'publish',
-					'menu-item-type' => 'activite',
-				));
-			}
-		}
+		add_post_item($id, $posts, $menu_id, 'visio_conference');
+
+	} else {
+		
+		add_post_item($item_id, $posts, $menu_id, 'visite_in_situ');
+
 	}
 }
 
 wp_nav_menu( array( 
 	'theme_location' => 'primary', 
-	'container_class' => 'custom-menu-class' )
+	'container_class' => 'top-menu-nav' )
 ); 
 
+
+function add_menu_item($item_post_title, $main_menu_id, $menu_id) {
+	
+	echo "Menu principal : " . $menu_id . "<br />";
+	echo "Menu parent : " . $main_menu_id . "<br /><br />";
+
+	// Si un menu existe on return l'id du menu
+	if (wp_get_nav_menu_items($menu_id)) {
+		foreach (wp_get_nav_menu_items($menu_id) as $item) {
+			if ($item->title === $item_post_title) {
+				$id = $item->ID;
+				return $id;
+			}
+		}
+	}
+
+	// Si n'existe pas créer l'item et return l'id
+	$item_id = wp_update_nav_menu_item($menu_id, 0, array(
+		'menu-item-title' => $item_post_title,
+		'menu-item-parent-id' => $main_menu_id,
+		'menu-item-status' => 'publish'
+	));
+
+	return $item_id;
+}
+
+function add_post_item($main_menu_id, $posts, $menu_id, $typeActivite) {
+	$id = 0;
+	$add_item = true;
+
+	foreach ($posts as $myPost) {
+		
+	echo "Menu principal : " . $menu_id . "<br />";
+	echo "Menu parent : " . $main_menu_id . "<br />";
+		// N'affiche pas l'activité add (Qui permet d'ajouter une activité)
+		if ($myPost->post_name != "add") {
+			// Récupère le type d'activité du post
+			$type = get_the_terms($myPost->ID, 'type_activite');
+			// Vérification du type de l'activité
+			if ( $type[0]->slug == $typeActivite) {
+				// Si un menu existe on return l'id du menu
+				if (wp_get_nav_menu_items($menu_id)) {
+					foreach (wp_get_nav_menu_items($menu_id) as $item) {
+						if ($item->title == $myPost->post_title) {
+							$id = $item->ID;
+						}
+					}
+				}
+
+				// Si il n'existe pas on le créer
+				if ($add_item) {
+					wp_update_nav_menu_item($menu_id, $id, array(
+						'menu-item-title' => ($myPost->post_title),
+						'menu-item-object' => 'post',
+						'menu-item-parent-id' => $main_menu_id,
+						'menu-item-url' => $myPost->guid,
+						'menu-item-status' => 'publish'
+					));
+				}
+			}
+		}
+	}
+}
 ?>
 
