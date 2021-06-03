@@ -72,10 +72,6 @@ wp_nav_menu( array(
 
 
 function add_menu_item($item_post_title, $main_menu_id, $menu_id) {
-	
-	echo "Menu principal : " . $menu_id . "<br />";
-	echo "Menu parent : " . $main_menu_id . "<br /><br />";
-
 	// Si un menu existe on return l'id du menu
 	if (wp_get_nav_menu_items($menu_id)) {
 		foreach (wp_get_nav_menu_items($menu_id) as $item) {
@@ -101,9 +97,6 @@ function add_post_item($main_menu_id, $posts, $menu_id, $typeActivite) {
 	$add_item = true;
 
 	foreach ($posts as $myPost) {
-		
-	echo "Menu principal : " . $menu_id . "<br />";
-	echo "Menu parent : " . $main_menu_id . "<br />";
 		// N'affiche pas l'activité add (Qui permet d'ajouter une activité)
 		if ($myPost->post_name != "add") {
 			// Récupère le type d'activité du post
