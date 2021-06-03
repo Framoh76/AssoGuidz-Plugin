@@ -178,8 +178,12 @@ if ($post) {
 			$date = get_post_meta($post->ID, 'date', true);
 		if (get_post_meta($post->ID, 'horaire', true) != null)
 			$horaire = get_post_meta($post->ID, 'horaire', true);
-		if (wp_get_post_terms($id, 'type_activite') != null)
-			$type_activite = wp_get_post_terms($post->ID, 'type_activite');
+		
+		$termsTypeActivite = get_the_terms($post->ID, 'type_activite'); 
+		if ( $termsTypeActivite != null) {
+			$type_activite = $termsTypeActivite[0]->name;
+		}
+
 		$content = $post->post_content;
 	
 		$programme = array();
@@ -403,11 +407,11 @@ if ($post) {
 										<label for="type_activite">Type d'activité</label>
 									</div>
 									<div class="col">
-										<select id="type_activite" name="type_activite" class="form-control">
+										<select id="type_activite" name="type_activite" class="form-control" required>
 											<option>Veuillez choisir le type de votre activité</option>
-											<option value="conference" <?php if ($type_activite[0]->name == 'conference') echo ' selected '; ?>">Conférence en salle</option>
-											<option value="visio_conference" <?php if ($type_activite[0]->name == 'visio_conference') echo ' selected '; ?>">Visio-conférence</option>
-											<option value="visite_in_situ" <?php if ($type_activite[0]->name == 'visite_in_situ') echo ' selected '; ?>">Visite in situ</option>
+											<option value="conference" <?php if ($type_activite == 'conference') echo ' selected '; ?>">Conférence en salle</option>
+											<option value="visio_conference" <?php if ($type_activite == 'visio_conference') echo ' selected '; ?>">Visio-conférence</option>
+											<option value="visite_in_situ" <?php if ($type_activite == 'visite_in_situ') echo ' selected '; ?>">Visite in situ</option>
 										</select>
 									</div>
 								</div>
@@ -479,6 +483,7 @@ if ($post) {
 		<script type="text/javascript">
 			afficheProgramme();
 		</script>
+		<br/><br/>
 	<?php
 	}
 echo '</body>';
