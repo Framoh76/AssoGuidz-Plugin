@@ -48,8 +48,10 @@ if (isset($_POST['form_action'])) {
 				'post_type' 	=> 'activite'
 			);
 			$id = wp_insert_post($my_post_array);
+			var_dump(get_post($id));
 			$post = get_post($id);
 		} else {
+			echo "non";
 			$my_post_array = array(
 				'ID'			=> $post->ID,
 				'post_title'    => wp_strip_all_tags($_POST['title']),
@@ -145,9 +147,9 @@ if (isset($_POST['form_action'])) {
 
 		update_post_meta( $id, 'programme_count', $nb_programme);
 		
-		//add_WOOCOMERCE_Product( $_POST['title'], $_POST['content'], $_POST['prix']);
+		add_WOOCOMERCE_Product( $_POST['title'], $_POST['content'], $_POST['prix']);
 
-		header('Location: '. get_site_url() . '/archives-des-activites/');
+		//header('Location: '. get_site_url() . '/archives-des-activites/');
 	}
 }
 
@@ -234,27 +236,32 @@ if ($post) {
 					}
 					?>
 				</div>
-				<div class="col-6">
-					<img src="<?php echo $image ?>" width="100%">
-				</div>
 
+				<div class="col-6">
+					<img class="img_activite" src="<?php echo $image ?>">
+				</div>
+			</div>
+			<div class="row">
 				<div class="col-12"><h1>Programme</h1></div>
-				<?php
-				for ($i=0; $i < NOMBRE_PROGRAMME; $i++) {
-					if ($programme[$i]['p_title'] != "") {
-				?> 
-					<div class="col-6">	<?php
-						echo "<h3 class='p_title'>" . $programme[$i]['p_title'] . "</h3>";
-						echo "<p class='p_content'>" . $programme[$i]['p_content'] . "</p>";
-						?>
-					</div>
-					<div class="col6">
 					<?php
-						echo '<img src="' . $programme[$i]['p_image'] . '" width="500px" height="300px">';
-					?>
-					</div>
-				<?php } } ?>
-				<hr>
+					for ($i=0; $i < NOMBRE_PROGRAMME; $i++) {
+						if ($programme[$i]['p_title'] != "") {
+					?> 
+						<div class="row">
+							<div class="col-6">	<?php
+								echo "<h3 class='p_title'>" . $programme[$i]['p_title'] . "</h3>";
+								echo "<p class='p_content'>" . $programme[$i]['p_content'] . "</p>";
+								?>
+							</div>
+							<div class="col-6">
+							<?php
+								echo '<img class="img_programme" src="' . $programme[$i]['p_image'] . '">';
+							?>
+							</div>
+						</div>
+					<?php } } ?>
+					<hr>
+				</div>
 			</div>
 		</div>
 	<?php

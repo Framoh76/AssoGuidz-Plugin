@@ -10,3 +10,12 @@
 ul {
     list-style: none;
 }
+
+.img_programme {
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
+.img_activite {
+    max-width: 100%;
+}

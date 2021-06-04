@@ -6,7 +6,8 @@ get_header();
 
 $type = array(
 	'post_status'    => 'any',
-	'post_type' 	=> 'activite'
+	'post_type' 	=> 'activite',
+	'numberposts' 	=> '-1',
 );
 
 $posts = get_posts($type);
