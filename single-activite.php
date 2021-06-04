@@ -9,7 +9,7 @@
  * @since Twenty Twenty-One 1.0
  */
 
-function add_WOOCOMERCE_Product( $action, $title, $description, $price) {
+function add_WOOCOMERCE_Product( $action, $productId, $title, $description, $price) {
 
 	if( $action == '1') {
 		$post_id = wp_insert_post( array(
@@ -21,41 +21,29 @@ function add_WOOCOMERCE_Product( $action, $title, $description, $price) {
 
 		wp_set_object_terms( $post_id, 'simple', 'product_type' );
 		update_post_meta( $post_id, '_price', $price );
+		
+		return $post_id;
 	}
 	else {
-		$type = array(
-			'post_status'    => 'any',
-			'post_type' 	=> 'product',
-			'numberposts' 	=> '-1',
-		);
-		$postsProduct = get_posts($type);
-		if( count( $postsProduct) >= 1) {
-			$idProduct = null;
-			foreach( $postsProduct as $postProduct) {
-				if( $postProduct->post_title == $title) {
-					$idProduct = $postProduct->ID;
-				}
-			}
-			if ( $idProduct == null){
-				echo "ERROORRRR 501.cant find Product";
-				die;
-			}
+		$postProduct = get_post( $productId);
+		if( $postsProduct != null) {
+			// echo "ID PROD:".$idProduct;
+			$post_id = wp_update_post( array(
+				'ID' => $idProduct,
+				'post_title' => $title,
+				'post_content' => $description,
+				'post_status' => 'publish',
+				'post_type' => "product",
+			) );
+
+			wp_set_object_terms( $post_id, 'simple', 'product_type' );
+			update_post_meta( $post_id, '_price', $price );
+			return $post_id;
 		}
 		else {
 			echo "ERROORRRR 502.cant find Product";
 			die;
 		}
-		// echo "ID PROD:".$idProduct;
-		$post_id = wp_update_post( array(
-			'ID' => $idProduct,
-			'post_title' => $title,
-			'post_content' => $description,
-			'post_status' => 'publish',
-			'post_type' => "product",
-		) );
-
-		wp_set_object_terms( $post_id, 'simple', 'product_type' );
-		update_post_meta( $post_id, '_price', $price );
 	}
 }
 
@@ -182,7 +170,11 @@ if (isset($_POST['form_action'])) {
 
 		update_post_meta( $id, 'programme_count', $nb_programme);
 		
-		add_WOOCOMERCE_Product( $_POST['new'], $_POST['title'], $_POST['content'], $_POST['prix']);
+		$productId = /// get meta ( 'product_d')
+		
+		$idProduct = add_WOOCOMERCE_Product( $_POST['new'], $productId, $_POST['title'], $_POST['content'], $_POST['prix']);
+
+		update_post_meta( $id, 'id_product', $idProduct);
 
 		header('Location: '. get_site_url() . '/archives-des-activites/');
 	}
