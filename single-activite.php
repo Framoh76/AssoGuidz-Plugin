@@ -9,17 +9,54 @@
  * @since Twenty Twenty-One 1.0
  */
 
-function add_WOOCOMERCE_Product( $title, $description, $price) {
+function add_WOOCOMERCE_Product( $action, $title, $description, $price) {
 
-	$post_id = wp_update_post( array(
-		'post_title' => $title,
-		'post_content' => $description,
-		'post_status' => 'publish',
-		'post_type' => "product",
-	) );
+	if( $action == '1') {
+		$post_id = wp_insert_post( array(
+			'post_title' => $title,
+			'post_content' => $description,
+			'post_status' => 'publish',
+			'post_type' => "product",
+		) );
 
-	wp_set_object_terms( $post_id, 'simple', 'product_type' );
-	update_post_meta( $post_id, '_price', $price );
+		wp_set_object_terms( $post_id, 'simple', 'product_type' );
+		update_post_meta( $post_id, '_price', $price );
+	}
+	else {
+		$type = array(
+			'post_status'    => 'any',
+			'post_type' 	=> 'product',
+			'numberposts' 	=> '-1',
+		);
+		$postsProduct = get_posts($type);
+		if( count( $postsProduct) >= 1) {
+			$idProduct = null;
+			foreach( $postsProduct as $postProduct) {
+				if( $postProduct->post_title == $title) {
+					$idProduct = $postProduct->ID;
+				}
+			}
+			if ( $idProduct == null){
+				echo "ERROORRRR 501.cant find Product";
+				die;
+			}
+		}
+		else {
+			echo "ERROORRRR 502.cant find Product";
+			die;
+		}
+		// echo "ID PROD:".$idProduct;
+		$post_id = wp_update_post( array(
+			'ID' => $idProduct,
+			'post_title' => $title,
+			'post_content' => $description,
+			'post_status' => 'publish',
+			'post_type' => "product",
+		) );
+
+		wp_set_object_terms( $post_id, 'simple', 'product_type' );
+		update_post_meta( $post_id, '_price', $price );
+	}
 }
 
 const NOMBRE_PROGRAMME = 10;
@@ -48,10 +85,8 @@ if (isset($_POST['form_action'])) {
 				'post_type' 	=> 'activite'
 			);
 			$id = wp_insert_post($my_post_array);
-			var_dump(get_post($id));
 			$post = get_post($id);
 		} else {
-			echo "non";
 			$my_post_array = array(
 				'ID'			=> $post->ID,
 				'post_title'    => wp_strip_all_tags($_POST['title']),
@@ -147,7 +182,7 @@ if (isset($_POST['form_action'])) {
 
 		update_post_meta( $id, 'programme_count', $nb_programme);
 		
-		//add_WOOCOMERCE_Product( $_POST['title'], $_POST['content'], $_POST['prix']);
+		add_WOOCOMERCE_Product( $_POST['new'], $_POST['title'], $_POST['content'], $_POST['prix']);
 
 		header('Location: '. get_site_url() . '/archives-des-activites/');
 	}
@@ -266,7 +301,7 @@ if ($post) {
 		</div>
 	<?php
 	} else if (isset($post) && $_REQUEST['action'] == "edit") { ?>
-		<form action="" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+		<form action="" method="post" class="needs-validation" enctype="multipart/form-data">
 			<div class="container">
 				<div class="row justify-content-center">
 					<div class="col-10">
@@ -415,7 +450,7 @@ if ($post) {
 									</div>
 									<div class="col">
 										<select id="type_activite" name="type_activite" class="form-control" required>
-											<option>Veuillez choisir le type de votre activité</option>
+											<option value="">Veuillez choisir le type de votre activité</option>
 											<option value="conference" <?php if ($type_activite == 'conference') echo ' selected '; ?>">Conférence en salle</option>
 											<option value="visio_conference" <?php if ($type_activite == 'visio_conference') echo ' selected '; ?>">Visio-conférence</option>
 											<option value="visite_in_situ" <?php if ($type_activite == 'visite_in_situ') echo ' selected '; ?>">Visite in situ</option>
