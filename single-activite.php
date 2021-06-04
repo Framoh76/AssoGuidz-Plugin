@@ -147,9 +147,9 @@ if (isset($_POST['form_action'])) {
 
 		update_post_meta( $id, 'programme_count', $nb_programme);
 		
-		add_WOOCOMERCE_Product( $_POST['title'], $_POST['content'], $_POST['prix']);
+		//add_WOOCOMERCE_Product( $_POST['title'], $_POST['content'], $_POST['prix']);
 
-		//header('Location: '. get_site_url() . '/archives-des-activites/');
+		header('Location: '. get_site_url() . '/archives-des-activites/');
 	}
 }
 

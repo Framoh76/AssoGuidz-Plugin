@@ -22,8 +22,9 @@ echo "<table class='table'>";
 		<th>Sous-titre</th>
 		<th>Prix</th>
 		<th>Image</th>
-		<th>Visibilité</th>
 		<th>Contenu</th>
+		<th>Type d'activité</th>
+		<th>Visibilité</th>
 		<th>Date d'expiration</th>
 	</tr>
 
@@ -54,13 +55,22 @@ foreach ($posts as $post) {
 				echo "<td>Pas d'image</td>";
 			}
 
+			echo "<td>" . $post->post_content . "</td>";
+
+			//Type
+			$termsTypeActivite = get_the_terms($post->ID, 'type_activite'); 
+			if ( $termsTypeActivite != null) {
+				$type_activite = $termsTypeActivite[0]->name;
+				echo '<td>' . $type_activite . '</td>';
+			} else {
+				echo '<td></td>';
+			}
+
 			if (get_post_meta($post->ID, 'visibility', true) == "true") {
 				echo '<td><input type="checkbox" id="visibility" name="visibility" checked disabled </td>';
 			} else {
 				echo '<td><input type="checkbox" id="visibility" name="visibility" disabled </td>';
 			}
-
-			echo "<td>" . $post->post_content . "</td>";
 
 			if (!empty(get_post_meta($post->ID, 'expiration', ""))) {
 				echo "<td>" . get_post_meta($post->ID, 'expiration', true) . "</td>";
