@@ -26,10 +26,10 @@ function add_WOOCOMERCE_Product( $action, $productId, $title, $description, $pri
 	}
 	else {
 		$postProduct = get_post( $productId);
-		if( $postsProduct != null) {
+		if( $postProduct != null) {
 			// echo "ID PROD:".$idProduct;
 			$post_id = wp_update_post( array(
-				'ID' => $idProduct,
+				'ID' => $postProduct->ID,
 				'post_title' => $title,
 				'post_content' => $description,
 				'post_status' => 'publish',
@@ -170,7 +170,7 @@ if (isset($_POST['form_action'])) {
 
 		update_post_meta( $id, 'programme_count', $nb_programme);
 		
-		$productId = /// get meta ( 'product_d')
+		$productId = get_post_meta($post->ID, 'id_product', true);
 		
 		$idProduct = add_WOOCOMERCE_Product( $_POST['new'], $productId, $_POST['title'], $_POST['content'], $_POST['prix']);
 
