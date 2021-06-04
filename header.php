@@ -43,17 +43,23 @@ $menu = get_term_by('name', 'menu', 'nav_menu');
 $menu_id = $menu->term_id;
 
 foreach ($mainTypes as $mainType) {
+
+	if ($mainType == 'Visite in situ')
+		$typeUrl = "visite_in_situ";
+	else
+		$typeUrl = "";
+
 	// Ajoute les menus d'entête dans le menu principal
-	$item_id = add_menu_item($mainType, $menu_id, $menu_id);
+	$item_id = add_menu_item($mainType, $menu_id, $menu_id, $typeUrl);
 
 	// Ajoute les sous-menus
 	if ($mainType == 'Conférences') {
 
-		$id = add_menu_item('Conférences en salle', $item_id, $menu_id);
+		$id = add_menu_item('Conférences en salle', $item_id, $menu_id, 'conference');
 
 		add_post_item($id, $posts, $menu_id, 'conference');
 
-		$id = add_menu_item('Visio conférence', $item_id, $menu_id);
+		$id = add_menu_item('Visio conférence', $item_id, $menu_id, 'visio_conference');
 
 		add_post_item($id, $posts, $menu_id, 'visio_conference');
 
@@ -70,7 +76,7 @@ wp_nav_menu( array(
 ); 
 
 
-function add_menu_item($item_post_title, $main_menu_id, $menu_id) {
+function add_menu_item($item_post_title, $main_menu_id, $menu_id, $typeActivite) {
 	// Si un menu existe on return l'id du menu
 	if (wp_get_nav_menu_items($menu_id)) {
 		foreach (wp_get_nav_menu_items($menu_id) as $item) {
@@ -84,7 +90,9 @@ function add_menu_item($item_post_title, $main_menu_id, $menu_id) {
 	// Si n'existe pas créer l'item et return l'id
 	$item_id = wp_update_nav_menu_item($menu_id, 0, array(
 		'menu-item-title' => $item_post_title,
+		'menu-item-object' => 'post',
 		'menu-item-parent-id' => $main_menu_id,
+		'menu-item-url' => get_site_url() . "/produits?type_activite=" . $typeActivite,
 		'menu-item-status' => 'publish'
 	));
 
