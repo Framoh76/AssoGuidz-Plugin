@@ -259,7 +259,7 @@ if ($post) {
 		</div>
 	<?php
 	} else if (isset($post) && $_REQUEST['action'] == "edit") { ?>
-		<form action="" method="post" enctype="multipart/form-data">
+		<form action="" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
 			<div class="container">
 				<div class="row justify-content-center">
 					<div class="col-10">

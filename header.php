@@ -11,7 +11,6 @@
  * @since Twenty Twenty-One 1.0
  */
 
-	error_reporting(E_ALL);
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?> <?php twentytwentyone_the_html_classes(); ?>>
