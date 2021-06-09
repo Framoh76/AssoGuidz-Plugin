@@ -76,7 +76,8 @@ function script() {
     wp_enqueue_style('style', 'https://assoguidz.com/wp-includes/css/dashicons.min.css?ver=5.7.1');
     wp_enqueue_script("app", plugin_dir_url('') . 'AssoGuidz-Plugin/app.js');
 
-    wp_enqueue_script("js", plugin_dir_url('') . 'AssoGuidz-Plugin/js/tinymce/jquery.tinymce.min.js');
+/* For tinymce/tinymce */
+    wp_enqueue_script("js", plugin_dir_url('') . 'AssoGuidz-Plugin/js/tinymce/tinymce.min.js');
     wp_enqueue_editor();
 }
 add_action( 'wp_enqueue_scripts', 'script');

@@ -433,7 +433,7 @@ if ($post) {
 											$name = 'content';
 											$settings =   array(
 												'wpautop' => true, // use wpautop?
-												'media_buttons' => true, // show insert/upload button(s)
+												'media_buttons' => false, // show insert/upload button(s)
 												'textarea_name' => $name, // set the textarea name to something different, square brackets [] can be used here
 												'textarea_rows' => get_option('default_post_edit_rows', 10), // rows="..."
 												'tabindex' => '',
@@ -443,11 +443,19 @@ if ($post) {
 												'dfw' => false, // replace the default fullscreen with DFW (supported on the front-end in WordPress 3.4)
 												'tinymce' => true, // load TinyMCE, can be used to pass settings directly to TinyMCE using an array()
 
-												'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
+												'quicktags' => false // load Quicktags, can be used to pass settings directly to Quicktags using an array()
 											);
 											
 											wp_editor($content, $name , $settings);
 										?>
+										<script> 
+										tinymce.init({
+										selector: "textarea",
+										plugins: [
+										],
+										toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+										}); 
+										</script>
 									</div>
 								</div>
 
@@ -567,7 +575,7 @@ if ($post) {
 								$name = "p_content_" . $i;
 								$settings =   array(
 									'wpautop' => true, // use wpautop?
-									'media_buttons' => true, // show insert/upload button(s)
+									'media_buttons' => false, // show insert/upload button(s)
 									'textarea_name' => $name, // set the textarea name to something different, square brackets [] can be used here
 									'textarea_rows' => get_option('default_post_edit_rows', 10), // rows="..."
 									'tabindex' => '',
@@ -577,7 +585,7 @@ if ($post) {
 									'dfw' => false, // replace the default fullscreen with DFW (supported on the front-end in WordPress 3.4)
 									'tinymce' => true, // load TinyMCE, can be used to pass settings directly to TinyMCE using an array()
 
-									'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
+									'quicktags' => false // load Quicktags, can be used to pass settings directly to Quicktags using an array()
 								);
 								wp_editor($programme[$i]['p_content'], $name, $settings);
 							?>
