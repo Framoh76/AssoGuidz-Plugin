@@ -9,6 +9,211 @@
  * @since Twenty Twenty-One 1.0
  */
 
+const 	MENU_CONFERENCE		= "Conférences"; // 1140
+const 	MENU_CONF_EN_SALLE 	= "Conférences en salle"; // 1141
+const 	MENU_VISIOCONF		= "Visio conférences"; // 1142;
+const 	MENU_VISIT_INSITU	= "Visites in situ"; // 1143;
+
+if( $_REQUEST['action'] == "edit" ) {
+	// verification si user est connecté....
+	$ID = get_current_user_id();
+	if ( $ID == null) {
+		$redirect = add_query_arg( 'redirect_to', get_permalink( $post->ID ), wp_login_url() );
+					// redirect to the login page and then to the requested page...
+		wp_redirect( $redirect );
+		exit();
+	}
+	$main_menu_id = getMainMenuId(); // recupere le main menu ID et si n'existe pas....MESSAGE d'erreur...
+	// echo "<br>MAIN MENU ID:".$main_menu_id;
+	
+	$ID_CONFERENCE = getMenuItemId( $main_menu_id, MENU_CONFERENCE); // 1141;
+	if( $ID_CONFERENCE == null ) {
+		echo '<br><br><font color="red">Le sous menu '.MENU_CONFERENCE.' doit etre créé avec URL: /produits?type_activite</font></br>';
+		die;
+	}
+
+	$ID_CONF_EN_SALLE = getMenuItemId( $main_menu_id, MENU_CONF_EN_SALLE); // 1141;
+	if( $ID_CONF_EN_SALLE == null ) {
+		echo '<br><br><font color="red">Le sous menu '.MENU_CONF_EN_SALLE.' doit etre créé comme sous menu de Conférences avec URL: /produits?type_activite=conference</font></br>';
+		die;
+	}
+	$ID_VISIOCONF = getMenuItemId( $main_menu_id, MENU_VISIOCONF); // 1142;
+	if( $ID_VISIOCONF == null ) {
+		echo '<br><br><font color="red">Le sous menu '.MENU_VISIOCONF.' doit etre créé comme sous menu de Conférences avec URL: /produits?type_activite=visio_conference</font></br>';
+		die;
+	}
+	$ID_VISIT_INSITU = getMenuItemId( $main_menu_id, MENU_VISIT_INSITU); // 1143;
+	if( $ID_VISIT_INSITU == null ) {
+		echo '<br><br><font color="red">Le sous menu '.MENU_VISIT_INSITU.' doit etre créé avec URL: /produits?type_activite=visite_in_situ</font></br>';
+		die;
+	}
+	
+	if( $ID_CONF_EN_SALLE == null || $ID_VISIOCONF == null || $ID_VISIT_INSITU == null) {
+		echo '<br><br><font color="red">Les sous menu ne sont pas créés, merci de créé Conférences et Visite Insitu</font></br>';
+		die;
+	}
+	$type = array(
+		'numberposts' 	=> '-1',
+		'post_status'	=> 'any',
+		'post_type' 	=> 'activite',
+		'orderby' 		=> 'title',
+		'order' 		=> 'ASC',
+		'post_status'    => 'any'
+	);
+	$activites = get_posts($type);
+	
+	// echo "<br><br>";
+	add_activite_to_menu( $ID_VISIT_INSITU, $activites, $main_menu_id, 'visite_in_situ', $titleOrigin);
+	add_activite_to_menu( $ID_CONF_EN_SALLE, $activites, $main_menu_id, 'conference', $titleOrigin);
+	add_activite_to_menu( $ID_VISIOCONF, $activites, $main_menu_id, 'visio_conference', $titleOrigin);
+}
+
+// Test si on a bien une activité avec le slug "add": nécessaire pour créer a minima un nouveau activité
+function is_add_activite_created() {
+	
+	$type = array(
+		'numberposts' 	=> '-1',
+		'post_status'	=> 'any',
+		'post_type' 	=> 'activite',
+		'orderby' 		=> 'date',
+		'order' 		=> 'ASC',
+		'post_status'    => 'any'
+	);
+	$activites = get_posts($type);
+	foreach ($activites as $activite) {
+		if ($activite->post_name == "add") {
+			return true;
+		}
+	}
+	
+	echo '<br><br><font color="red">Il est nécessaire de crééer une Activité avec le slug "add", Merci de créér cette activité</font></br>';
+	die;
+}
+
+// ID of the menu item with name $title
+function getMenuItemId( $main_menu_id, $title) {
+	//echo "<br>".$title;
+	foreach (wp_get_nav_menu_items($main_menu_id) as $item) {
+		// echo "MEENU".$item->title;
+		if ( strtolower($item->title) === strtolower($title)) {
+			$id = $item->ID;
+			// echo "<br>".$title."ID:".$id;
+			return $id;
+		}
+	}
+	return null;
+}
+
+// ID of the main primary menu
+function getMainMenuId() {
+	// Récupération de l'ID du menu primary de wordpress qui doit s'appeler "Principal"...
+	$menu = get_term_by('name', 'Principal', 'nav_menu');
+	if( !$menu ) {
+		echo '<br><br><font color="red">Le menu principal de Wordpress doit se nommer "Principal" pour que cela fonctionne...Merci de modifier le nom du menu</font></br>';
+		die;
+	}
+	$menu_id = $menu->term_id;  // $menu_id contient l'ID du menu qui doit s'appeler "Principal"
+	return $menu_id;
+}
+
+/*
+// Cree ou renvoit les ID des MENU de type Conférence, Visio-conférence, Visite In situ, ...
+function add_menu_item($item_post_title, $main_menu_id, $submenu_id, $typeActivite) {
+	// Si un menu existe on return l'id du menu
+	// echo "<br>add_menu_item".$main_menu_id.":".$item_post_title. " SubMenu de :".$submenu_id;
+	if (wp_get_nav_menu_items($main_menu_id)) {
+		foreach (wp_get_nav_menu_items($main_menu_id) as $item) {
+			// echo $item->title.";";
+			if ( ($item->title === $item_post_title) ) {
+				$id = $item->ID;
+				// echo "ID:".$id;
+				return $id;
+			}
+		}
+	}
+
+	// Si n'existe pas créer l'item et return l'id
+	$id = "0"; // Creer un nouveau Item de menu (conference, visio,....)
+	$item_id = wp_update_nav_menu_item($main_menu_id, $id, array(
+		'menu-item-title' => $item_post_title,
+		'menu-item-object' => 'post',
+		'menu-item-parent-id' => $submenu_id,
+		'menu-item-url' => get_site_url() . "/produits?type_activite=" . $typeActivite,
+		'menu-item-status' => 'publish'
+	));
+	if ( is_wp_error( $item_id ) ) {
+		echo 'ERROR: ' . $item_id->get_error_message();
+	}
+	echo "<br> Creation ".$item_post_title.":".$item_id. " SubMenu de :".$submenu_id;
+	echo "<hr>";
+	return $item_id;
+}
+*/
+
+
+
+/* Ajoute l'activité au menu ($menu_id) */
+function add_activite_to_menu($parent_menu_id, $activites, $menu_id, $typeActivite, $titleOrigin) {
+	// echo "<BR>ADD_ACTIVITE_TO_MENU<br>";
+	foreach ($activites as $activite) {
+		// N'affiche pas l'activité add (Qui permet d'ajouter une activité)
+		$idActivite = 0; // Id de l'item du menu a ajouter
+		
+		if ($activite->post_name != "add") {
+			// Récupère le type d'activité du post
+			$type = get_the_terms($activite->ID, 'type_activite');
+			// Vérification du type de l'activité
+			if ( $type[0]->slug == $typeActivite) {
+				// echo "<br>ACTIVITE:".$activite->post_title;
+				// Si un menu existe on return l'id du menu
+				if (wp_get_nav_menu_items($menu_id)) {
+					foreach (wp_get_nav_menu_items($menu_id) as $item) {
+						// if ($item->title == $activite->post_title ||  $titleOrigin == $activite->post_title) {
+						if ($item->title == $activite->post_title ) {
+							$idActivite = $item->ID;	// Item de menu deja existant...
+						}
+					}
+				}
+				// echo "<br>   ID:".$idActivite;
+				// echo "  ID activité".$activite->ID;
+				$visibility = get_post_meta($activite->ID, 'visibility', true);
+				$date_expiration = get_post_meta($activite->ID, 'expiration', true);
+				$count_jour = -100000;
+				if( $date_expiration != '') {
+					$datetime_expiration = date_create($date_expiration);
+					
+					$date_aujourdhui = date('Y-m-d', time());
+					$datetime_aujourdhui = date_create($date_aujourdhui);
+
+					$interval = date_diff($datetime_expiration, $datetime_aujourdhui);
+					$count_jour = $interval->format('%r%a'); // %r (negative and positive) %a(jour)
+				}
+				// echo " VISI: ".$visibility; 
+				// echo " COUNT JOUR: ".$count_jour; 
+				
+				if( $count_jour < 0 && $visibility == "true") {
+					// echo " ----> VISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour;
+					$ret = wp_update_nav_menu_item($menu_id, $idActivite, array(
+					'menu-item-title' => $activite->post_title,
+					'menu-item-object' => 'post',
+					'menu-item-parent-id' => $parent_menu_id,
+					'menu-item-url' => $activite->guid,
+					'menu-item-status' => 'publish'
+					));
+					// echo "  GUID:    ".$activite->guid."   RET:".$ret;
+				}
+				else {
+					//  echo " ----> INVVISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour; 
+					if( $idActivite != 0) {
+						// echo "DELETE POST".$idActivite;
+						wp_delete_post( $idActivite);
+					}
+				}
+			}
+		}
+	}
+}
+
 function add_WOOCOMERCE_Product( $action, $productId, $title, $description, $price) {
 	if( $action == '1') {
 		$post_id = wp_insert_post( array(
@@ -26,7 +231,7 @@ function add_WOOCOMERCE_Product( $action, $productId, $title, $description, $pri
 	else {
 		$postProduct = get_post( $productId);
 		if( $postProduct != null) {
-			// echo "ID PROD:".$idProduct;
+			echo "ID PROD:".$postProduct->ID;
 			$post_id = wp_update_post( array(
 				'ID' => $postProduct->ID,
 				'post_title' => $title,
@@ -62,7 +267,9 @@ if (isset($_POST['form_action'])) {
 			$publication = "publish";
 		else 
 			$publication = "private";
-
+		
+		// echo "NEW:".$_POST['new'];
+		
 		if ($_POST['new']) {
 			$my_post_array = array(
 				'post_title'    => wp_strip_all_tags($_POST['title']),
@@ -72,17 +279,22 @@ if (isset($_POST['form_action'])) {
 				'post_type' 	=> 'activite'
 			);
 			$id = wp_insert_post($my_post_array);
+			// echo "  INSERTED:".$id ;
 			$post = get_post($id);
+			// echo "  POST ID:".$post->ID;
+			
 		} else {
 			$my_post_array = array(
-				'ID'			=> $post->ID,
+				'ID'			=> $_POST['activite_id'],
 				'post_title'    => wp_strip_all_tags($_POST['title']),
 				'post_content'  => $_POST['content'],
 				'post_status'   => $publication,
 				'post_author'   => 'author',
 				'post_type' 	=> 'activite'
 			);
+			// echo " UPDATE POST".$_POST['activite_id']. " PUBLI:".$publication;
 			$id = wp_update_post($my_post_array, true);
+			echo " -->UPDATED: ".$id;
 			$post = get_post($id);
 		}
 
@@ -121,18 +333,19 @@ if (isset($_POST['form_action'])) {
 		else
 			update_post_meta( $id, 'visibility', 'false');
 
+		$id_current_activite = $id;
 		update_post_meta( $id, 'cancel', $_POST['cancel']);
-		update_post_meta( $id, 'expiration', $_POST['expiration']);			
+		update_post_meta( $id, 'expiration', $_POST['expiration']);
 		update_post_meta( $id, 'conferencier', $_POST['conferencier']);
-		update_post_meta( $id, 'quantite', $_POST['quantite']);			
+		update_post_meta( $id, 'quantite', $_POST['quantite']);
 		update_post_meta( $id, 'reserver', $_POST['reserver']);
 		update_post_meta( $id, 'lieu', $_POST['lieu']);
-		update_post_meta( $id, 'date', $_POST['date']);			
+		update_post_meta( $id, 'date', $_POST['date']);
 		update_post_meta( $id, 'horaire', $_POST['horaire']);
 		wp_set_post_terms( $id, $_POST['type_activite'], 'type_activite');
 
 		$nb_programme = 0;
-
+/*
 		for ($i=0; $i < NOMBRE_PROGRAMME; $i++) { 
 			if (isset($_POST['p_title_' . $i]) && isset($_POST['p_content_' . $i]) && isset($_FILES['p_image_' . $i])){
 				update_post_meta( $id, 'programme_title_' . $i, $_POST['p_title_' . $i]);
@@ -166,71 +379,19 @@ if (isset($_POST['form_action'])) {
 				}	
 			}
 		}
-
+*/
 		update_post_meta( $id, 'programme_count', $nb_programme);
 		
-		$productId = get_post_meta($post->ID, 'id_product', true);
-		
+		$productId = get_post_meta($id, 'id_product', true);
+			// echo " ADD WOO".$_POST['new']. " PID". $productId;
+
 		$idProduct = add_WOOCOMERCE_Product( $_POST['new'], $productId, $_POST['title'], $_POST['content'], $_POST['prix']);
 
-		update_post_meta( $id, 'id_product', $idProduct);
+		// echo " update_post_meta ". $id_current_activite . "  ". $idProduct;
+		update_post_meta( $id_current_activite , 'id_product', $idProduct);
 
-		function add_menu_item($item_post_title, $main_menu_id, $menu_id, $typeActivite) {
-			// Si un menu existe on return l'id du menu
-			if (wp_get_nav_menu_items($menu_id)) {
-				foreach (wp_get_nav_menu_items($menu_id) as $item) {
-					if ($item->title === $item_post_title) {
-						$id = $item->ID;
-					}
-				}
-			}
+		$titleOrigin = $_POST['title'];
 
-			// Si n'existe pas créer l'item et return l'id
-			$item_id = wp_update_nav_menu_item($menu_id, $id, array(
-				'menu-item-title' => $item_post_title,
-				'menu-item-object' => 'post',
-				'menu-item-parent-id' => $main_menu_id,
-				'menu-item-url' => get_site_url() . "/produits?type_activite=" . $typeActivite,
-				'menu-item-status' => 'publish'
-			));
-
-			return $item_id;
-		}
-
-		function add_post_item($main_menu_id, $posts, $menu_id, $typeActivite) {
-			$id = 0;
-			$add_item = true;
-
-			foreach ($posts as $myPost) {
-				// N'affiche pas l'activité add (Qui permet d'ajouter une activité)
-				if ($myPost->post_name != "add") {
-					// Récupère le type d'activité du post
-					$type = get_the_terms($myPost->ID, 'type_activite');
-					// Vérification du type de l'activité
-					if ( $type[0]->slug == $typeActivite) {
-						// Si un menu existe on return l'id du menu
-						if (wp_get_nav_menu_items($menu_id)) {
-							foreach (wp_get_nav_menu_items($menu_id) as $item) {
-								if ($item->title == $myPost->post_title) {
-									$id = $item->ID;
-								}
-							}
-						}
-
-						// Si il n'existe pas on le créer
-						if ($add_item) {
-							wp_update_nav_menu_item($menu_id, $id, array(
-								'menu-item-title' => ($myPost->post_title),
-								'menu-item-object' => 'post',
-								'menu-item-parent-id' => $main_menu_id,
-								'menu-item-url' => $myPost->guid,
-								'menu-item-status' => 'publish'
-							));
-						}
-					}
-				}
-			}
-		}
 
 		$type = array(
 			'numberposts' 	=> '-1',
@@ -241,42 +402,21 @@ if (isset($_POST['form_action'])) {
 			'post_status'    => 'any'
 		);
 
-		$mainTypes = array('Conférences', 'Visite in situ');
+		$activites = get_posts($type);
+		$menu_id = getMainMenuId();  // $menu_id contient l'ID du menu qui doit s'appeler "Principal"
 
-		$posts = get_posts($type);
-
-		// Liste des menues d'entête
-		$menu = get_term_by('name', 'menu', 'nav_menu');
-		$menu_id = $menu->term_id;
-
-		foreach ($mainTypes as $mainType) {
-
-			if ($mainType == 'Visite in situ')
-				$typeUrl = "visite_in_situ";
-			else
-				$typeUrl = "";
-
-			// Ajoute les menus d'entête dans le menu principal
-			$item_id = add_menu_item($mainType, $menu_id, $menu_id, $typeUrl);
-
-			// Ajoute les sous-menus
-			if ($mainType == 'Conférences') {
-
-				$id = add_menu_item('Conférences en salle', $item_id, $menu_id, 'conference');
-
-				add_post_item($id, $posts, $menu_id, 'conference');
-
-				$id = add_menu_item('Visio conférence', $item_id, $menu_id, 'visio_conference');
-
-				add_post_item($id, $posts, $menu_id, 'visio_conference');
-
-			} else {
-				
-				add_post_item($item_id, $posts, $menu_id, 'visite_in_situ');
-
-			}
+		switch( $_POST['type_activite']) {
+			case CONST_CONFERENCE:
+				add_activite_to_menu($ID_CONF_EN_SALLE, $activites, $main_menu_id, CONST_CONFERENCE, $titleOrigin);
+				break;
+			case CONST_VISIOCONFERENCE:
+				add_activite_to_menu( $ID_VISIOCONF, $activites, $main_menu_id, CONST_VISIOCONFERENCE, $titleOrigin);
+				break;
+			case CONST_VISIT_INSITU:
+				add_activite_to_menu( $ID_VISIT_INSITU, $activites, $main_menu_id, CONST_VISIT_INSITU, $titleOrigin);
+				break;
 		}
-
+		// die;
 		header('Location: '. get_site_url() . '/archives-des-activites/');
 	}
 }
@@ -304,8 +444,14 @@ if ($post) {
 			$reserver = get_post_meta($post->ID, 'reserver', true);
 		if (get_post_meta($post->ID, 'lieu', true) != null)
 			$lieu = get_post_meta($post->ID, 'lieu', true);
-		if (get_post_meta($post->ID, 'date', true) != null)
+		if (get_post_meta($post->ID, 'date', true) != null) {
 			$date = get_post_meta($post->ID, 'date', true);
+			if( $_REQUEST['action'] == "display" ) {
+				$dateF = DateTime::createFromFormat( 'Y-m-d', $date);
+				if( $dateF)
+					$date = $dateF->format('d-m-Y');
+			}
+		}
 		if (get_post_meta($post->ID, 'horaire', true) != null)
 			$horaire = get_post_meta($post->ID, 'horaire', true);
 		
@@ -325,71 +471,101 @@ if ($post) {
 				'p_image' => get_post_meta($post->ID, 'programme_image_' . $i, true)
 			];
 		}
+
+		$id_produit = get_post_meta($post->ID, 'id_product', true);
+		$produit = get_post($id_produit);
 	}
 	if (isset($post) && $_REQUEST['action'] == "display" || !isset($_REQUEST['action'])) { //Page display ?>
 
-		<div class="container">
-			<div class="row">
-				<div class="col-6">
-					<?php
-					if ($title != "")
-						echo '<h1 class="titre">' . $title . '</h1>';
+		<div id="et-main-area">
+			<div id="main-content">
+			<article>
+				<div class="entry-content">
+					<div id="et-boc" class="et-boc">
+						<div class="et-l et-l--post">
+							<div class="et_builder_inner_content et_pb_gutters3">
+								<div class="et_pb_section et_pb_section_0 et_section_regular" >
+									<div class="et_pb_row et_pb_row_0">
+										<div class="et_pb_column et_pb_column_4_4 et_pb_column_0  et_pb_css_mix_blend_mode_passthrough et-last-child">
+											<div class="et_pb_module et_pb_text et_pb_text_0  et_pb_text_align_left et_pb_bg_layout_light">
+												<div class="et_pb_text_inner"></div>
+											</div> <!-- .et_pb_text -->
+										</div> <!-- .et_pb_column -->
+									</div> <!-- .et_pb_row -->
+									<div class="et_pb_row et_pb_row_2">
+										<div class="et_pb_column et_pb_column_1_2 et_pb_column_2  et_pb_css_mix_blend_mode_passthrough">
+											<div class="et_pb_module et_pb_text et_pb_text_2  et_pb_text_align_left et_pb_bg_layout_light">
+												<div class="et_pb_text_inner">
+												<?php
+													if ($title != "")
+														echo '<h2>' . $title . '</h2>';
 
-					if ($sub_title != "")
-						echo '<h2 class="sous_titre">' . $sub_title . '</h2>';
+													if ($sub_title != "")
+														echo '<h2>' . $sub_title . '</h2>';
 
-					if ($conferencier != "")
-						echo '<h3 class="conferencier">' . $conferencier . '</h3>';
+													if ($content != "")
+														echo '<p>' . $content . "</p>";
 
-					if ($date != "")
-						echo '<p class="date">' . $date . '</p>';
+													echo '<p>';
+													if ($conferencier != "")
+														echo '<strong>Conférencier.e : </strong>' . $conferencier . '<br>';
 
-					if ($duree != "")
-						echo '<p class="horaire">' . $horaire . '</p>';
-					
-					if ($prix != "")
-						echo '<p class="prix">Tarif ' . $prix . '€</p>';
+													if ($date != "")
+														echo '<strong>Date : </strong>' . $date . '<br>';
 
-					if ($lieu != "")
-						echo '<p class="lieu">' . $lieu . '</p>';
+													if ($horaire != "")
+														echo '<strong>Horaire : </strong>' . $horaire . '<br>';
+													
+													if ($prix != "")
+														echo '<strong>Tarif : </strong>' . $prix . '€<br>';
 
-					if ($cancel != "")
-						echo '<p class="annulation">' . $cancel . '</p>';
+													if ($lieu != "")
+														echo '<strong>Lieu : </strong>' . $lieu . '<br>';
 
-					if ($content != "")
-						echo '<p class="contenu">' . $content . "</p>";
+													if ($cancel != "") {
+														echo '<span style="text-decoration: underline; color: #e02b20;">' . $cancel . '</span><br>';
+													}
 
-					if ($quantite != "") {
-						echo 'Réservation restante: ' . $quantite;
-					}
-					?>
-				</div>
+													if ($quantite != "") {
+														echo '<strong>Places restantes : </strong>' . $quantite.'<br>';
+													}
+													echo '</p>';
+												?>
+												</div> <!-- .et_pb_text -->
+												<?php 
+												if ($cancel == "") { 
+												?>
+												<div class="et_pb_button_module_wrapper et_pb_button_0_wrapper  et_pb_module ">
+													<a class="et_pb_button et_pb_button_0 et_pb_bg_layout_light" href="?add-to-cart=<?php echo $produit->ID ?>&type_activite=<?php echo $_GET['type_activite'];?>" 
+															data-quantity="1"
+															data-product_id==<?php echo $produit->ID ?>	
+															rel="nofollow">Réserver
+													</a>
 
-				<div class="col-6">
-					<img class="img_activite" src="<?php echo $image ?>">
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-12"><h1>Programme</h1></div>
-					<?php
-					for ($i=0; $i < NOMBRE_PROGRAMME; $i++) {
-						if ($programme[$i]['p_title'] != "") {
-					?> 
-						<div class="row">
-							<div class="col-6">	<?php
-								echo "<h3 class='p_title'>" . $programme[$i]['p_title'] . "</h3>";
-								echo "<p class='p_content'>" . $programme[$i]['p_content'] . "</p>";
-								?>
-							</div>
-							<div class="col-6">
-							<?php
-								echo '<img class="img_programme" src="' . $programme[$i]['p_image'] . '">';
-							?>
+													<!-- <a class="et_pb_button et_pb_button_0 et_pb_bg_layout_light" href="https://assoguidz.com/boutique/visite-guidee-2020-2021/jardin-tuileries/">Réserver </a> -->
+												</div>
+												<?php } ?>
+											</div>
+										</div> <!-- .et_pb_column -->
+										<div class="et_pb_column et_pb_column_1_2 et_pb_column_3  et_pb_css_mix_blend_mode_passthrough et-last-child">
+											<div class="et_pb_module et_pb_image et_pb_image_0">
+												<?php if( $image != '') { ?>
+												<span class="et_pb_image_wrap "><img class="img_activite" src="<?php echo $image ?>" title=<?php echo $title ?> alt=<?php echo $title ?> height="auto" width="auto" data-recalc-dims="1"></span>
+												<?php } ?>
+											</div>
+										</div> <!-- .et_pb_column -->
+									</div> <!-- .et_pb_row -->
+									<div class="et_pb_row et_pb_row_3">
+										<div class="et_pb_column et_pb_column_4_4 et_pb_column_4  et_pb_css_mix_blend_mode_passthrough et-last-child">
+											<div class="et_pb_module et_pb_divider et_pb_divider_0 et_pb_divider_position_ et_pb_space"><div class="et_pb_divider_internal"></div></div>
+										</div> <!-- .et_pb_column -->
+									</div> <!-- .et_pb_row -->
+								</div>
 							</div>
 						</div>
-					<?php } } ?>
-					<hr>
+					</div>
 				</div>
+			</article>
 			</div>
 		</div>
 	<?php
@@ -405,7 +581,22 @@ if ($post) {
 										<label for="title">Titre*: </label>
 									</div>
 									<div class="col">
+										<input type="hidden" id="activite_id" name="activite_id" value="<?php echo $post->ID ?>" required>
+										<input type="hidden" id="title_origin" name="title_origin" value="<?php echo $title ?>" required>
 										<input class="form-control" type="text" id="title" name="title" value="<?php echo $title ?>" required>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-2">
+										<label for="type_activite">Type d'activité</label>
+									</div>
+									<div class="col">
+										<select id="type_activite" name="type_activite" class="form-control" required>
+											<option value="">Veuillez choisir le type de votre activité</option>
+											<option value="conference" <?php if ($type_activite == CONST_CONFERENCE) echo ' selected '; ?>">Conférence en salle</option>
+											<option value="visio_conference" <?php if ($type_activite == CONST_VISIOCONFERENCE) echo ' selected '; ?>">Visio-conférence</option>
+											<option value="visite_in_situ" <?php if ($type_activite == CONST_VISIT_INSITU) echo ' selected '; ?>">Visite in situ</option>
+										</select>
 									</div>
 								</div>
 								<div class="row">
@@ -450,6 +641,8 @@ if ($post) {
 										?>
 										<script> 
 										tinymce.init({
+										menubar:false,
+										statusbar:false,
 										selector: "textarea",
 										plugins: [
 										],
@@ -459,7 +652,7 @@ if ($post) {
 									</div>
 								</div>
 
-								<label for="visibility">Visibilité : </label> 
+								<label for="visibility">Visibile sur le site : </label> 
 
 								<?php
 									if ($post->post_title == 'add') {
@@ -497,16 +690,16 @@ if ($post) {
 								</div>
 								<div class="row">
 									<div class="col-2">
-										<label for="prix">Prix: </label> 
+										<label for="prix">Prix*: </label> 
 									</div>
 									<div class="col-2">
-										<input class="form-control" type="number" id="prix" name="prix" value="<?php echo $prix ?>">
+										<input class="form-control" type="number" id="prix" name="prix" value="<?php echo $prix ?>" required>
 									</div>
 									<div class="col-2">
-										<label for="image">Quantité:</label>
+										<label for="image">Quantité*:</label>
 									</div>
 									<div class="col-2">
-										<input class="form-control" type="number" name="quantite" id="quantite" value="<?php echo $quantite ?>">
+										<input class="form-control" type="number" name="quantite" id="quantite" value="<?php echo $quantite ?>" required>
 									</div>
 									<div class="col-2">
 										<label for="image">Réservé:</label>
@@ -525,10 +718,10 @@ if ($post) {
 								</div>
 								<div class="row">
 									<div class="col-2">
-										<label for="date">Date: </label> 
+										<label for="date">Date*: </label> 
 									</div>
 									<div class="col-4">
-										<input class="form-control" type="text" id="date" name="date" value="<?php echo $date ?>">
+										<input class="form-control" type="date" id="date" name="date" value="<?php echo $date ?>"  required>
 									</div>
 									<div class="col-2">
 										<label for="horaire">Horaire:</label>
@@ -545,22 +738,11 @@ if ($post) {
 										<input class="form-control" type="date" id="expiration" name="expiration" value="<?php echo $expiration ?>">
 									</div>
 								</div>
-								<div class="row">
-									<div class="col-2">
-										<label for="type_activite">Type d'activité</label>
-									</div>
-									<div class="col">
-										<select id="type_activite" name="type_activite" class="form-control" required>
-											<option value="">Veuillez choisir le type de votre activité</option>
-											<option value="conference" <?php if ($type_activite == 'conference') echo ' selected '; ?>">Conférence en salle</option>
-											<option value="visio_conference" <?php if ($type_activite == 'visio_conference') echo ' selected '; ?>">Visio-conférence</option>
-											<option value="visite_in_situ" <?php if ($type_activite == 'visite_in_situ') echo ' selected '; ?>">Visite in situ</option>
-										</select>
-									</div>
-								</div>
+								
 							</div>
 					</div>
 				</div>
+				<!--
 				<div class="row justify-content-center">
 					<div class="col-10">				
 						<h2>Programme (Max 10) <span onclick="showProgramme()" id="showProgramme" class="dashicons dashicons-plus-alt"></span> </h2>
@@ -608,6 +790,7 @@ if ($post) {
 						<?php } ?>
 					</div>
 				</div>
+				-->
 				<div class="row justify-content-center">
 					<div class="col-10">
 						<?php if ($post->post_name == "add") { ?>

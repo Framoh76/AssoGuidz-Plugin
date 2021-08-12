@@ -2,14 +2,6 @@
     display: none;
 }
 
-.menu {
-    display: flex;
-    flex-direction: row;
-}
-
-ul {
-    list-style: none;
-}
 
 .img_programme {
     max-width: 100%;
@@ -19,3 +11,4 @@ ul {
 .img_activite {
     max-width: 100%;
 }
+
