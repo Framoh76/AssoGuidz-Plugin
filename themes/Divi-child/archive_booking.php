@@ -112,11 +112,16 @@ if( isset( $_REQUEST['export_liste'])) {
 	echo "<h1>Réservations pour  : ". $type_activite. ": <b>". $titre_activite."</b></h1>";
 	$lieu = get_post_meta($idActivite, 'lieu', true);
 	$date = get_post_meta($idActivite, 'date', true);
+	$dateF = DateTime::createFromFormat( 'Y-m-d', $date);
+	if( $dateF){
+		$date = $dateF->format('d-m-Y');
+	}
+	$sujet_mail = $activite->post_title. " - ".$date;
+
 	$horaire = get_post_meta($idActivite, 'horaire', true);
 	echo "<h3>".ucfirst($lieu)." , le ". $date. " à ". $horaire."</h3>";
 	
 	$titre_presence = $titre_activite. ucfirst($lieu)." , le ". $date. " à ". $horaire;
-	
 	
 	echo '</div>';
 	echo '</div>';
@@ -125,7 +130,7 @@ if( isset( $_REQUEST['export_liste'])) {
 	$usersIds = explode( ",", $list_users_ids );
 	
 	echo '<table style="width:100%">';
-	echo '<tr><th width="250">Nom Prénom</th><th width="200">Email</th><th width="200">Coordonnées</th></tr>';
+	echo '<tr><th width="250" style="text-align:left;">Nom Prénom</th><th width="200" style="text-align:left;">Email</th><th width="200" style="text-align:left;">Coordonnées</th></tr>';
 
 	$listUsersEmails = "";
 	$listPresence = "";
@@ -163,7 +168,7 @@ if( isset( $_REQUEST['export_liste'])) {
 	<br><b>Exporter la liste de présence</b>
 	<form id="presence" method="POST" action="" > 
 		<input type="hidden" id="presence" name="presence" value="1">
-		<input type="hidden" id="subject" name="subject" value="<?php echo $titre_presence; ?>">
+		<input type="hidden" id="subject" name="subject" value="<?php echo $titre_activite; ?>">
 		<input type="hidden" id="liste" name="liste" value="<?php echo $listPresence; ?>">
 		<button id="export" name="export">Exporter</button>
 	</form>
@@ -172,7 +177,7 @@ if( isset( $_REQUEST['export_liste'])) {
 	<br><b>Envoyez un email à tous les inscrits</b>
 	<form id="sendmail" method="POST" action="" > 
 		<input type="hidden" id="sendmail" name="sendmail" value="1">
-		<input type="hidden" id="subject" name="subject" value="<?php echo $titre_activite; ?>">
+		<input type="hidden" id="subject" name="subject" value="<?php echo $sujet_mail; ?>">
 		<input type="hidden" id="to" name="to" value="<?php echo $listUsersEmails; ?>">
 	
 	  <?php 
@@ -289,14 +294,14 @@ else {
 </div>
 
 
-	<table class='table' style="width:100%">
+	<table class='table' style="width:100%" border="1">
 			<tr>
-				<th>Activité</th>
+				<th style="text-align:left;">Activité</th>
 			<!--	<th>Nombre</th>  -->
 			<!--	<th>Status</th>  -->
-				<th>Réservé par</th>
-				<th>Total Payé</th>
-				<th>Nb personnes</th>
+				<th style="text-align:left;">Réservé par</th>
+				<th style="text-align:left;">Total Payé</th>
+				<th style="text-align:left;">Nb personnes</th>
 			</tr>
 
 <?php 

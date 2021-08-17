@@ -71,7 +71,7 @@ $activites = tri_date( $activites);
 					
 						echo '<td><a href="/activite/' . $activite->post_name . '?action=display"><span class="dashicons dashicons-external"></span></a></td>';
 
-						echo '<th><a href="/activite/' . $activite->post_name . '?action=edit">' .  $activite->post_title . "</a></th>";
+						echo '<td><strong><a href="/activite/' . $activite->post_name . '?action=edit">' .  $activite->post_title . "</a></strong></td>";
 
 						if (!empty(get_post_meta($activite->ID, 'date', ""))) {
 							$date = get_post_meta($activite->ID, 'date', true);
