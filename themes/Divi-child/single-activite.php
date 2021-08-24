@@ -104,17 +104,6 @@ function getMenuItemId( $main_menu_id, $title) {
 	return null;
 }
 
-// ID of the main primary menu
-function getMainMenuId() {
-	// Récupération de l'ID du menu primary de wordpress qui doit s'appeler "Principal"...
-	$menu = get_term_by('name', 'Principal', 'nav_menu');
-	if( !$menu ) {
-		echo '<br><br><font color="red">Le menu principal de Wordpress doit se nommer "Principal" pour que cela fonctionne...Merci de modifier le nom du menu</font></br>';
-		die;
-	}
-	$menu_id = $menu->term_id;  // $menu_id contient l'ID du menu qui doit s'appeler "Principal"
-	return $menu_id;
-}
 
 /*
 // Cree ou renvoit les ID des MENU de type Conférence, Visio-conférence, Visite In situ, ...
