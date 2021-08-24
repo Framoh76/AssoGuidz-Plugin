@@ -115,7 +115,7 @@ function TypeActivite( $type) {
 function compare_date( $a,$b) {
 	$t1 = strtotime($a);
     $t2 = strtotime($b);
-    return $t2 - $t1;
+    return $t1 - $t2;
 }
 
 function tri_date( $activites){
@@ -138,5 +138,114 @@ function tri_date( $activites){
 		}
 	}
 	return $activites_sorted;
+}
+
+
+// ID of the main primary menu
+function getMainMenuId() {
+	// Récupération de l'ID du menu primary de wordpress qui doit s'appeler "Principal"...
+	$menu = get_term_by('name', 'Principal', 'nav_menu');
+	if( !$menu ) {
+		echo '<br><br><font color="red">Le menu principal de Wordpress doit se nommer "Principal" pour que cela fonctionne...Merci de modifier le nom du menu</font></br>';
+		die;
+	}
+	$menu_id = $menu->term_id;  // $menu_id contient l'ID du menu qui doit s'appeler "Principal"
+	return $menu_id;
+}
+
+
+
+
+
+
+/* RELOAD ACTIVITES dans le menu tous les jours...... */
+function activite_menu_desactivate() {
+    wp_clear_scheduled_hook( 'activite_menu_cron' );
+}
+ 
+add_action('init', function() {
+    add_action( 'activite_menu_cron', 'activite_menu_run_cron' );
+    register_deactivation_hook( __FILE__, 'activite_menu_desactivate' );
+ 
+    if (! wp_next_scheduled ( 'activite_menu_cron' )) {
+        wp_schedule_event( time(), 'daily', 'activite_menu_cron' );
+    }
+});
+ 
+function activite_menu_run_cron() {
+    // Rechargement du menu en fonction des dates des activités....
+	$type = array(
+		'numberposts' 	=> '-1',
+		'post_status'	=> 'any',
+		'post_type' 	=> 'activite',
+		'orderby' 		=> 'date',
+		'order' 		=> 'ASC',
+		'post_status'    => 'any'
+	);
+
+	$activites = get_posts($type); // Toutes les activites....
+	$menu_id = getMainMenuId();  // $menu_id contient l'ID du menu qui doit s'appeler "Principal"
+
+	$deletedAct = 'AUCUNE ';
+	foreach ($activites as $activite) {
+		// N'affiche pas l'activité add (Qui permet d'ajouter une activité)
+		$idActivite = 0; // Id de l'item du menu a ajouter
+		
+		if ($activite->post_name != "add") {
+			// Récupère le type d'activité du post
+			$type = get_the_terms($activite->ID, 'type_activite');
+			// Vérification du type de l'activité
+			if ( $type[0]->slug == $typeActivite) {
+				// echo "<br>ACTIVITE:".$activite->post_title;
+				// Si un menu existe on return l'id du menu
+				if (wp_get_nav_menu_items($menu_id)) {
+					foreach (wp_get_nav_menu_items($menu_id) as $item) {
+						// if ($item->title == $activite->post_title ||  $titleOrigin == $activite->post_title) {
+						if ($item->title == $activite->post_title ) {
+							$idActivite = $item->ID;	// Item de menu deja existant...
+						}
+					}
+				}
+				// echo "<br>   ID:".$idActivite;
+				// echo "  ID activité".$activite->ID;
+				$visibility = get_post_meta($activite->ID, 'visibility', true);
+				$date_expiration = get_post_meta($activite->ID, 'expiration', true);
+				$count_jour = -100000;
+				if( $date_expiration != '') {
+					$datetime_expiration = date_create($date_expiration);
+					
+					$date_aujourdhui = date('Y-m-d', time());
+					$datetime_aujourdhui = date_create($date_aujourdhui);
+
+					$interval = date_diff($datetime_expiration, $datetime_aujourdhui);
+					$count_jour = $interval->format('%r%a'); // %r (negative and positive) %a(jour)
+				}
+				// echo " VISI: ".$visibility; 
+				// echo " COUNT JOUR: ".$count_jour; 
+				
+				if( $count_jour < 0 && $visibility == "true") {
+					// echo " ----> VISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour;
+					$ret = wp_update_nav_menu_item($menu_id, $idActivite, array(
+					'menu-item-title' => $activite->post_title,
+					'menu-item-object' => 'post',
+					'menu-item-parent-id' => $parent_menu_id,
+					'menu-item-url' => $activite->guid,
+					'menu-item-status' => 'publish'
+					));
+					// echo "  GUID:    ".$activite->guid."   RET:".$ret;
+				}
+				else {
+					//  echo " ----> INVVISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour; 
+					if( $idActivite != 0) {
+						// echo "DELETE POST".$idActivite;
+						wp_delete_post( $idActivite);
+						$deletedAct = $idActivite.";";
+					}
+				}
+			}
+		}
+	}
+
+	sendEmails( 'info@fmosys.fr', 'AssoGuidz: reload menu...', 'reload en cours....DELETE: '.$deletedAct );
 }
 
