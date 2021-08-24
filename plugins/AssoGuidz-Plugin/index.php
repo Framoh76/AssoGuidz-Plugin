@@ -8,6 +8,8 @@
 * Author URI: 
 **/
 
+add_action( 'init', 'wpm_custom_post_type', 0 );
+
 function wpm_custom_post_type() {
     $labels = array(
         'name'                => _x( 'Activités', 'Post Type General Name' ),
@@ -29,17 +31,30 @@ function wpm_custom_post_type() {
         'labels'              => $labels,
         'supports'            => array( 'title', 'editor', 'excerpt', 'author', 'thumbnail', 'comments', 'revisions', 'custom-fields',),
         'show_in_rest' => true,
+        'show_in_ui' => true,
         'hierarchical' => false,
         'public' => true,
         'has_archive' => true,
         'rewrite' => array( 'slug' => 'activite'),
     );
     register_post_type('activite', $args );
+
+
+	$url = 'dashicons-book-alt';  // See: https://developer.wordpress.org/resource/dashicons/#twitter
+	$position = 0;
+	add_menu_page('Activités', 'Activités', 'read', 'archives-des-activites', 'addActivitesMenuInAdmin', $url, $position);
 }
 
-add_action( 'init', 'wpm_add_taxonomies', 0 );
 
-//On crée 3 taxonomies personnalisées: Année, Réalisateurs et Catégories de série.
+function addActivitesMenuInAdmin() {
+	
+	// echo '<h1><a href="/archives-des-activites/">Activités</a></h1>';
+	header( "location: /archives-des-activites");
+}
+
+
+//On crée 1 taxonomie personnalisée
+add_action( 'init', 'wpm_add_taxonomies', 0 );
 
 function wpm_add_taxonomies() {
     $label_type_activite = array(
@@ -58,7 +73,7 @@ function wpm_add_taxonomies() {
     $type_activite = array(
         'hierarchical'      => false,
         'labels'            => $label_type_activite,
-        'show_ui'           => true,
+        'show_ui'           => false,  // Pas d'affichage dans le menu admin....
         'show_in_rest' => true,
         'show_admin_column' => true,
         'query_var'         => true,
@@ -68,7 +83,6 @@ function wpm_add_taxonomies() {
     register_taxonomy( 'type_activite', 'activite', $type_activite );
 }
 
-add_action( 'init', 'wpm_custom_post_type', 0 );
 
 function script() {
    // wp_enqueue_style( 'style', plugin_dir_url('') . 'AssoGuidz-Plugin/app.css');
