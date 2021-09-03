@@ -186,7 +186,31 @@ function activite_menu_run_cron() {
 	$activites = get_posts($type); // Toutes les activites....
 	$menu_id = getMainMenuId();  // $menu_id contient l'ID du menu qui doit s'appeler "Principal"
 
+	$activites = tri_date( $activites); // TRI par date....
+	
 	$deletedAct = 'AUCUNE ';
+	
+	// On supprime toutes les activités des menus.....
+	foreach ($activites as $activite) {
+		// N'affiche pas l'activité add (Qui permet d'ajouter une activité)
+		$idActivite = 0; // Id de l'item du menu a ajouter
+		
+		if ($activite->post_name != "add") {
+			if (wp_get_nav_menu_items($menu_id)) {
+				foreach (wp_get_nav_menu_items($menu_id) as $item) {
+					// if ($item->title == $activite->post_title ||  $titleOrigin == $activite->post_title) {
+					if ($item->title == $activite->post_title ) {
+						$idActivite = $item->ID;	// Item de menu deja existant...
+						wp_delete_post( $idActivite);
+						$deletedAct = $idActivite.";";
+					}
+				}
+			}
+		}
+	}
+	
+	// Puis on les ajoute....
+	$deletedAct .= 'AUCUNE ';
 	foreach ($activites as $activite) {
 		// N'affiche pas l'activité add (Qui permet d'ajouter une activité)
 		$idActivite = 0; // Id de l'item du menu a ajouter
