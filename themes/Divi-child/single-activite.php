@@ -435,7 +435,7 @@ if ($post) {
 			$lieu = get_post_meta($post->ID, 'lieu', true);
 		if (get_post_meta($post->ID, 'date', true) != null) {
 			$date = get_post_meta($post->ID, 'date', true);
-			if( $_REQUEST['action'] == "display" ) {
+			if( $_REQUEST['action'] != "edit" ) {
 				$dateF = DateTime::createFromFormat( 'Y-m-d', $date);
 				if( $dateF)
 					$date = $dateF->format('d-m-Y');
@@ -522,7 +522,16 @@ if ($post) {
 												?>
 												</div> <!-- .et_pb_text -->
 												<?php 
+												
+												$date_aujourdhui = date('Y-m-d', time());
+												$datetime_aujourdhui = date_create($date_aujourdhui);
+												$datetime_date = date_create($date);
+												$interval = date_diff($datetime_date, $datetime_aujourdhui);
+												$count_jour = $interval->format('%r%a'); // %r (negative and positive) %a(jour)
+												// echo $count_jour;
+
 												if ($cancel == "") { 
+												  if( $count_jour <= 0) {
 												?>
 												<div class="et_pb_button_module_wrapper et_pb_button_0_wrapper  et_pb_module ">
 													<a class="et_pb_button et_pb_button_0 et_pb_bg_layout_light" href="?add-to-cart=<?php echo $produit->ID ?>&type_activite=<?php echo $_GET['type_activite'];?>" 
@@ -533,7 +542,8 @@ if ($post) {
 
 													<!-- <a class="et_pb_button et_pb_button_0 et_pb_bg_layout_light" href="https://assoguidz.com/boutique/visite-guidee-2020-2021/jardin-tuileries/">Réserver </a> -->
 												</div>
-												<?php } ?>
+												  <?php }
+												  } ?>
 											</div>
 										</div> <!-- .et_pb_column -->
 										<div class="et_pb_column et_pb_column_1_2 et_pb_column_3  et_pb_css_mix_blend_mode_passthrough et-last-child">
