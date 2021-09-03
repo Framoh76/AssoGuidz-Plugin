@@ -40,7 +40,8 @@ if( isset( $_REQUEST['presence'])) {
 	echo "<h2>".$titlePresence."</h2>";
 	
 	echo '<table style="width:100%">';
-	echo '<tr><th width="250">Nom Prénom</th><th width="200">email</th><th width="200">téléphone</th><th width="200">Présence</th></tr>';
+	echo '<tr><th width="250" style="text-align:left">Prénom Nom</th><th width="200" style="text-align:left">email</th>
+	<th width="200" style="text-align:left">téléphone</th><th width="200" style="text-align:left">Présence</th></tr>';
 	
 	foreach( $listUsers as $user) {
 		$detailUsers = explode( ";", $user);
@@ -75,6 +76,8 @@ else {
 	if( isset( $_REQUEST['sendmail'])) {
 		
 		$listUsersEmails = explode( ";", $_REQUEST['to']);
+		$listUsersEmails[] = "assoguidz@gmail.com";
+		
 		$totalEmailSent = 0;
 		$countEmail = 0;
 		
@@ -130,7 +133,7 @@ if( isset( $_REQUEST['export_liste'])) {
 	$usersIds = explode( ",", $list_users_ids );
 	
 	echo '<table style="width:100%">';
-	echo '<tr><th width="250" style="text-align:left;">Nom Prénom</th><th width="200" style="text-align:left;">Email</th><th width="200" style="text-align:left;">Coordonnées</th></tr>';
+	echo '<tr><th width="250" style="text-align:left;">Prénom Nom</th><th width="200" style="text-align:left;">Email</th><th width="200" style="text-align:left;">Coordonnées</th></tr>';
 
 	$listUsersEmails = "";
 	$listPresence = "";
