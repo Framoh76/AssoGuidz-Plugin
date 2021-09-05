@@ -155,9 +155,16 @@ $activites = tri_date( $activites);
 				}
 			}
 		?>
+		<tr>
+		<td>
+		&nbsp;&nbsp;<button class="btn btn-light"><a href="<?php get_site_url(); ?>/activite/add/?action=edit"> Ajouter une activite </a></button>
+		</td>
+		<td>
+		&nbsp;&nbsp;<button class="btn btn-light"><a href="<?php get_site_url(); ?>/reservations"> Voir  les réservations </a></button>
+		</td>
+		</tr>
 		</table>
-		<button class="btn btn-light"><a href="<?php get_site_url(); ?>/activite/add/?action=edit"> Ajouter une activite </a></button>
-		<button class="btn btn-light"><a href="<?php get_site_url(); ?>/reservations"> Voir  les réservations </a></button>
+		<br>
 	</body>
 </html>
 
@@ -179,5 +186,6 @@ function reserve_product( $product_id, $user_id = '', $date_reservation = '2021-
 add_action( 'woocommerce_booking_in-cart_to_paid', 'auto_create_followup_booking' );
 add_action( 'woocommerce_booking_unpaid_to_paid', 'auto_create_followup_booking' );
 add_action( 'woocommerce_booking_confirmed_to_paid', 'auto_create_followup_booking' );
+
 
 ?>

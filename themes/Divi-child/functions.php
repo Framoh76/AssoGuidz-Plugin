@@ -96,6 +96,12 @@ function sendEmails( $to, $subject, $body) {
 }
 
 
+const 	MENU_CONFERENCE		= "Conférences"; // 1140
+const 	MENU_CONF_EN_SALLE 	= "Conférences en salle"; // 1141
+const 	MENU_VISIOCONF		= "Visio conférences"; // 1142;
+const 	MENU_VISIT_INSITU	= "Visites in situ"; // 1143;
+
+
 const 	CONST_VISIOCONFERENCE	= 'visio_conference';
 const 	CONST_CONFERENCE		= 'conference';
 const 	CONST_VISIT_INSITU		= 'visite_in_situ';
@@ -141,6 +147,21 @@ function tri_date( $activites){
 }
 
 
+// ID of the menu item with name $title
+function getMenuItemId( $main_menu_id, $title) {
+	//echo "<br>".$title;
+	foreach (wp_get_nav_menu_items($main_menu_id) as $item) {
+		// echo "MEENU".$item->title;
+		if ( strtolower($item->title) === strtolower($title)) {
+			$id = $item->ID;
+			// echo "<br>".$title."ID:".$id;
+			return $id;
+		}
+	}
+	return null;
+}
+
+
 // ID of the main primary menu
 function getMainMenuId() {
 	// Récupération de l'ID du menu primary de wordpress qui doit s'appeler "Principal"...
@@ -169,9 +190,11 @@ add_action('init', function() {
  
     if (! wp_next_scheduled ( 'activite_menu_cron' )) {
         wp_schedule_event( time(), 'daily', 'activite_menu_cron' );
+        // wp_schedule_event( time(), 'hourly', 'activite_menu_cron' );
     }
 });
  
+
 function activite_menu_run_cron() {
     // Rechargement du menu en fonction des dates des activités....
 	$type = array(
@@ -202,13 +225,20 @@ function activite_menu_run_cron() {
 					if ($item->title == $activite->post_title ) {
 						$idActivite = $item->ID;	// Item de menu deja existant...
 						wp_delete_post( $idActivite);
-						$deletedAct = $idActivite.";";
+						$deletedAct .= $idActivite.";";
 					}
 				}
 			}
 		}
 	}
 	
+	$main_menu_id = getMainMenuId(); // recupere le main menu ID et si n'existe pas....MESSAGE d'erreur...
+
+	$ID_CONF_EN_SALLE = getMenuItemId( $main_menu_id, MENU_CONF_EN_SALLE); // 1141;
+	$ID_VISIOCONF = getMenuItemId( $main_menu_id, MENU_VISIOCONF); // 1142;
+	$ID_VISIT_INSITU = getMenuItemId( $main_menu_id, MENU_VISIT_INSITU); // 1143;
+
+
 	// Puis on les ajoute....
 	$deletedAct .= 'AUCUNE ';
 	foreach ($activites as $activite) {
@@ -218,53 +248,64 @@ function activite_menu_run_cron() {
 		if ($activite->post_name != "add") {
 			// Récupère le type d'activité du post
 			$type = get_the_terms($activite->ID, 'type_activite');
-			// Vérification du type de l'activité
-			if ( $type[0]->slug == $typeActivite) {
-				// echo "<br>ACTIVITE:".$activite->post_title;
-				// Si un menu existe on return l'id du menu
-				if (wp_get_nav_menu_items($menu_id)) {
-					foreach (wp_get_nav_menu_items($menu_id) as $item) {
-						// if ($item->title == $activite->post_title ||  $titleOrigin == $activite->post_title) {
-						if ($item->title == $activite->post_title ) {
-							$idActivite = $item->ID;	// Item de menu deja existant...
-						}
+			switch( $type[0]->slug) {
+				case CONST_VISIOCONFERENCE: 
+					$parent_menu_id = $ID_VISIOCONF;
+					break;
+				case CONST_CONFERENCE: 
+					$parent_menu_id = $ID_CONF_EN_SALLE;
+					break;
+				case CONST_VISIT_INSITU: 
+					$parent_menu_id = $ID_VISIT_INSITU;
+					break;
+			}
+			echo "type:".$type[0]->slug." PARE:".$parent_menu_id;
+			// echo "<br>ACTIVITE:".$activite->post_title;
+			// Si un menu existe on return l'id du menu
+			if (wp_get_nav_menu_items($menu_id)) {
+				foreach (wp_get_nav_menu_items($menu_id) as $item) {
+					// if ($item->title == $activite->post_title ||  $titleOrigin == $activite->post_title) {
+					if ($item->title == $activite->post_title ) {
+						$idActivite = $item->ID;	// Item de menu deja existant...
 					}
 				}
-				// echo "<br>   ID:".$idActivite;
-				// echo "  ID activité".$activite->ID;
-				$visibility = get_post_meta($activite->ID, 'visibility', true);
-				$date_expiration = get_post_meta($activite->ID, 'expiration', true);
-				$count_jour = -100000;
-				if( $date_expiration != '') {
-					$datetime_expiration = date_create($date_expiration);
-					
-					$date_aujourdhui = date('Y-m-d', time());
-					$datetime_aujourdhui = date_create($date_aujourdhui);
-
-					$interval = date_diff($datetime_expiration, $datetime_aujourdhui);
-					$count_jour = $interval->format('%r%a'); // %r (negative and positive) %a(jour)
-				}
-				// echo " VISI: ".$visibility; 
-				// echo " COUNT JOUR: ".$count_jour; 
+			}
+			echo "<br>   ID:".$idActivite;
+			// echo "  ID activité".$activite->ID;
+			$visibility = get_post_meta($activite->ID, 'visibility', true);
+			$date_expiration = get_post_meta($activite->ID, 'expiration', true);
+			$count_jour = -100000;
+			if( $date_expiration != '') {
+				$datetime_expiration = date_create($date_expiration);
 				
-				if( $count_jour < 0 && $visibility == "true") {
-					// echo " ----> VISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour;
-					$ret = wp_update_nav_menu_item($menu_id, $idActivite, array(
-					'menu-item-title' => $activite->post_title,
-					'menu-item-object' => 'post',
-					'menu-item-parent-id' => $parent_menu_id,
-					'menu-item-url' => $activite->guid,
-					'menu-item-status' => 'publish'
-					));
-					// echo "  GUID:    ".$activite->guid."   RET:".$ret;
-				}
-				else {
-					//  echo " ----> INVVISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour; 
-					if( $idActivite != 0) {
-						// echo "DELETE POST".$idActivite;
-						wp_delete_post( $idActivite);
-						$deletedAct = $idActivite.";";
-					}
+				$date_aujourdhui = date('Y-m-d', time());
+				$datetime_aujourdhui = date_create($date_aujourdhui);
+
+				$interval = date_diff($datetime_expiration, $datetime_aujourdhui);
+				$count_jour = $interval->format('%r%a'); // %r (negative and positive) %a(jour)
+			}
+			// echo " VISI: ".$visibility; 
+			// echo " COUNT JOUR: ".$count_jour; 
+			
+			if( $count_jour < 0 && $visibility == "true") {
+				// echo " ----> VISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour;
+				
+
+				$ret = wp_update_nav_menu_item($menu_id, $idActivite, array(
+				'menu-item-title' => $activite->post_title,
+				'menu-item-object' => 'post',
+				'menu-item-parent-id' => $parent_menu_id,
+				'menu-item-url' => $activite->guid,
+				'menu-item-status' => 'publish'
+				));
+				// echo "  GUID:    ".$activite->guid."   RET:".$ret;
+			}
+			else {
+				//  echo " ----> INVVISIBLE ".$idActivite.":".$activite->post_title. $visibility.":".$count_jour; 
+				if( $idActivite != 0) {
+					// echo "DELETE POST".$idActivite;
+					wp_delete_post( $idActivite);
+					$deletedAct = $idActivite.";";
 				}
 			}
 		}
@@ -272,4 +313,3 @@ function activite_menu_run_cron() {
 
 	sendEmails( 'info@fmosys.fr', 'AssoGuidz: reload menu...', 'reload en cours....DELETE: '.$deletedAct );
 }
-

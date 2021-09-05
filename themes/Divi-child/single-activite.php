@@ -9,10 +9,6 @@
  * @since Twenty Twenty-One 1.0
  */
 
-const 	MENU_CONFERENCE		= "Conférences"; // 1140
-const 	MENU_CONF_EN_SALLE 	= "Conférences en salle"; // 1141
-const 	MENU_VISIOCONF		= "Visio conférences"; // 1142;
-const 	MENU_VISIT_INSITU	= "Visites in situ"; // 1143;
 
 if( $_REQUEST['action'] == "edit" ) {
 	// verification si user est connecté....
@@ -90,19 +86,7 @@ function is_add_activite_created() {
 	die;
 }
 
-// ID of the menu item with name $title
-function getMenuItemId( $main_menu_id, $title) {
-	//echo "<br>".$title;
-	foreach (wp_get_nav_menu_items($main_menu_id) as $item) {
-		// echo "MEENU".$item->title;
-		if ( strtolower($item->title) === strtolower($title)) {
-			$id = $item->ID;
-			// echo "<br>".$title."ID:".$id;
-			return $id;
-		}
-	}
-	return null;
-}
+
 
 
 /*
