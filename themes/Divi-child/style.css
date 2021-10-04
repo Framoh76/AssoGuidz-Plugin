@@ -16,3 +16,23 @@
     color: red;
     font-weight: 700;
 }
+
+
+#top-menu li li a {
+    width: 500px;
+    font-size:14px;
+    padding: 6px 0px;
+}
+
+#top-menu ul .sub-menu {
+  width:500px;
+  font-size:14px;
+  padding: 6px 0px;
+}
+
+.nav li ul {
+  width:500px;
+  font-size:14px;
+  padding: 6px 0px;
+}
+
