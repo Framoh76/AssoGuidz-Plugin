@@ -635,7 +635,7 @@ if ($post) {
 									</div>
 								</div>
 
-								<label for="visibility">Visibile sur le site : </label> 
+								<label for="visibility">Visible sur le site : </label> 
 
 								<?php
 									if ($post->post_title == 'add') {
