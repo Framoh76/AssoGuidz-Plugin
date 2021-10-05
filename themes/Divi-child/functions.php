@@ -13,7 +13,7 @@ if ( ! function_exists( 'suffice_child_enqueue_child_styles' ) ) {
 	    // loading parent style
 	    wp_register_style(
 	      'parente2-style',
-	      get_template_directory_uri() . '/style.css'
+	      get_template_directory_uri() . '/style.css?id=122'
 	    );
 
 	    wp_enqueue_style( 'parente2-style' );
@@ -50,7 +50,8 @@ function getOrders() {
 		$post_string           = "'" . implode( "', '", $post_id ) . "'";
 // // AND o.post_status IN ( $order_statuses_string )
 			
-			
+		$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+
 		$item_sales = $wpdb->get_results( $wpdb->prepare(
 			"SELECT o.ID as order_id, oi.order_item_id,  oim.meta_value AS product_id FROM
 			{$wpdb->prefix}woocommerce_order_itemmeta oim
@@ -77,6 +78,50 @@ function getOrders() {
 		return $item_sales;
 }
 
+function getOrdersNew( ) {
+	global $wpdb;
+	
+	$sql = "
+	SELECT
+        p.ID as order_id,
+        p.post_date,
+        max( CASE WHEN pm.meta_key = '_billing_email' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_email,
+        max( CASE WHEN pm.meta_key = '_billing_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_first_name,
+        max( CASE WHEN pm.meta_key = '_billing_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_last_name,
+        max( CASE WHEN pm.meta_key = '_billing_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_1,
+        max( CASE WHEN pm.meta_key = '_billing_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_2,
+        max( CASE WHEN pm.meta_key = '_billing_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_city,
+        max( CASE WHEN pm.meta_key = '_billing_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_state,
+        max( CASE WHEN pm.meta_key = '_billing_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_postcode,
+        max( CASE WHEN pm.meta_key = '_shipping_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_first_name,
+        max( CASE WHEN pm.meta_key = '_shipping_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_last_name,
+        max( CASE WHEN pm.meta_key = '_shipping_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_1,
+        max( CASE WHEN pm.meta_key = '_shipping_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_2,
+        max( CASE WHEN pm.meta_key = '_shipping_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_city,
+        max( CASE WHEN pm.meta_key = '_shipping_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_state,
+        max( CASE WHEN pm.meta_key = '_shipping_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_postcode,
+        max( CASE WHEN pm.meta_key = '_order_total' and p.ID = pm.post_id THEN pm.meta_value END ) as order_total,
+        max( CASE WHEN pm.meta_key = '_order_tax' and p.ID = pm.post_id THEN pm.meta_value END ) as order_tax,
+        max( CASE WHEN pm.meta_key = '_paid_date' and p.ID = pm.post_id THEN pm.meta_value END ) as paid_date,
+        ( select group_concat( order_item_name separator '<br>' ) from wp_woocommerce_order_items where order_id = p.ID ) as order_items
+    FROM
+        wp_posts p 
+        join wp_postmeta pm on p.ID = pm.post_id
+        join wp_woocommerce_order_items oi on p.ID = oi.order_id
+    WHERE
+        post_type = 'shop_order' and ".
+     //   post_date BETWEEN '2018-07-01' AND '2021-08-01' and
+     "   post_status = 'wc-completed' 
+    group by
+        p.ID  
+	ORDER BY `billing_email` ASC, paid_date DESC
+	";
+	
+	$wpdb->query( 'SET SESSION SQL_BIG_SELECTS=1' );
+	// echo $sql;
+	$item_sales = $wpdb->get_results( $sql);
+	return $item_sales;
+}
 
 function sendEmails( $to, $subject, $body) {
 

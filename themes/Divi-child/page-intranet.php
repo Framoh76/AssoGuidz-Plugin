@@ -9,7 +9,7 @@ if ( is_front_page() ) {
 if (isset($_REQUEST['form_action'])) {
 	$nonce = $_REQUEST['idguidz'];
 	if ( ! wp_verify_nonce( $nonce, 'my-nonce' ) ) {
-		die( __( 'Security check', 'textdomain' ) ); 
+		die( __( 'Pour accéder à cette page, vous ne devez pas être connecté à wordpress, merci de vous déconnecter', 'textdomain' ) ); 
 	} 
 
 	if ($_REQUEST['form_action'] == 'sendidguidz' ) {
@@ -96,16 +96,32 @@ if (isset($_REQUEST['form_action'])) {
 				echo '</form>';
 				echo '</p>';
 
-				$orders = getOrders();
+				$orders = getOrdersNew();
 
-				echo "<table>";
+				echo '<table border="1">';
 				echo "<tr>";
-				echo '<th style="text-align:left;">Activité</th>';
+				echo '<th style="text-align:left;">Activités</th>';
 				echo '<th width="150" style="text-align:left;">Date d\'achat</th>';
 				echo '<th width="150" style="text-align:left;">Prix payé</th>';
-				echo '<th style="text-align:left;" width="100">Status</th>';
 				echo "</tr>";
 
+				foreach( $orders as $order) {
+					if( $order->billing_email == $email) {
+						echo "<tr>";
+					//	echo "<td>".$customer->display_name.":".$customer->user_email.":".$customer->user_login."</td>";
+						echo "<td>". str_replace("adminguidz", "", $order->order_items)."</td>";
+						$datePaid = (new dateTime($order->paid_date))->format('d-m-Y');
+						echo "<td>". $datePaid."</td>";
+						echo "<td>". $order->order_total."€</td>";
+						echo "</tr>";
+						
+						// var_dump( $order);
+					}
+				}
+				echo "</table>";
+
+
+/*
 				foreach( $orders as $order) {
 					// if( $product_id == $order->product_id) {
 					$orderProduct = new WC_Order($order->order_id);
@@ -120,14 +136,16 @@ if (isset($_REQUEST['form_action'])) {
 						$datePaid = (new dateTime($orderProduct->get_date_paid()))->format('d-m-Y');
 						
 						$customer = $orderProduct->get_user();
-						// echo "<p>CUSTOMER EMAIL : ".$customer->user_email."</p>";
-						if( $customer->user_email == $email) {
+						// var_dump( $customer); die;
+					//	echo '<tr><td colspan="3">CUSTOMER EMAIL : '.$customer->user_email."</td><td>".$customer->user_login."</tr>";
+					if( !isset( $_REQUEST['all']) && $customer->user_email == $email) {
 							// echo "<p>CUSTOMER USER : ".$customer->display_name."</p>";
 							// echo "<p>Product ID : ".$orderProduct->ID."</p>";
 							// $status .= wc_bookings_get_status_label( $bookingReservation->get_status() ) .",";
 
 							foreach ( $orderProduct->get_items() as $item_id => $item ) {
 								echo "<tr>";
+							//	echo "<td>".$customer->display_name.":".$customer->user_email.":".$customer->user_login."</td>";
 								echo "<td>". $item->get_name()."</td>";
 								echo "<td>". $datePaid."</td>";
 								echo "<td>". $item->get_total()."€</td>";
@@ -144,7 +162,10 @@ if (isset($_REQUEST['form_action'])) {
 					}
 				}
 				echo "</table>";
+*/
 			}
+
+
 		}
 		die;
 	}
