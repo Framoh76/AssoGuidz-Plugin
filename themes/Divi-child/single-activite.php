@@ -413,8 +413,9 @@ if ($post) {
 			$conferencier = get_post_meta($post->ID, 'conferencier', true);
 		if (get_post_meta($post->ID, 'quantite', true) != null)
 			$quantite = get_post_meta($post->ID, 'quantite', true);
-		if (get_post_meta($post->ID, 'reserver', true) != null)
-			$reserver = get_post_meta($post->ID, 'reserver', true);
+		
+		$quantiteBooked = countParticipants( $post);
+		
 		if (get_post_meta($post->ID, 'lieu', true) != null)
 			$lieu = get_post_meta($post->ID, 'lieu', true);
 		if (get_post_meta($post->ID, 'date', true) != null) {
@@ -500,6 +501,7 @@ if ($post) {
 													}
 
 													if ($quantite != "") {
+														$quantite -= $quantiteBooked;
 														echo '<strong>Places restantes : </strong>' . $quantite.'<br>';
 													}
 													echo '</p>';
@@ -688,7 +690,7 @@ if ($post) {
 										<label for="image">Réservé:</label>
 									</div>
 									<div class="col-2">
-										<input class="form-control" type="number" name="reserver" id="reserver" value="<?php echo $reserver ?>">
+										<input class="form-control" type="number" name="reserver" id="reserver" value="<?php echo $quantiteBooked ?>">
 									</div>
 								</div>
 								<div class="row">

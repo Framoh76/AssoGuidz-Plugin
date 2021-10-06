@@ -358,3 +358,30 @@ function activite_menu_run_cron() {
 
 	sendEmails( 'info@fmosys.fr', 'AssoGuidz: reload menu...', 'reload en cours....DELETE: '.$deletedAct );
 }
+
+
+function countParticipants( $activite) {
+	$activite_id = $activite->ID;
+	
+	$product_id = get_post_meta($activite->ID, 'id_product', true);
+	$produit = get_post($product_id);
+	
+	$customer = array();
+	$customerNames = '';
+	$status = '';
+	$costTotal = 0;
+	$countCustomer = 0;
+	$liste_ids = "";
+	$orders = getOrders();
+	
+	foreach( $orders as $order) {
+		if( $product_id == $order->product_id) {
+			$orderProduct = new WC_Order($order->order_id);
+			
+			if( ($orderProduct->get_date_completed() != '') && ($orderProduct->get_date_paid() != '')) { // SI COMPLET ET PAYE!!!!
+				$countCustomer++;
+			}
+		}
+	}
+	return $countCustomer;
+}

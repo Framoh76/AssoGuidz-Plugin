@@ -119,13 +119,15 @@ $activites = tri_date( $activites);
 
 						$quantity = get_post_meta($activite->ID, 'quantite', true);
 						if ( $quantity > 0) {
-							$reserved = 2;
+							
 							$customer_email = '';
 							$user_id = -1;
-							$product_id = get_post_meta($activite->ID, 'id_product', true);
+							/*$product_id = get_post_meta($activite->ID, 'id_product', true);
 							$reserved = wc_customer_bought_product($customer_email, $user_id, $product_id); 
 							
 							// reserve_product( $product_id);
+							*/
+							$reserved = countParticipants( $activite);
 							
 							if( $reserved == '') $reserved = '0';
 							$reservation = $reserved . "/" . $quantity;
