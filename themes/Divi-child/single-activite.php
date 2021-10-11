@@ -518,6 +518,7 @@ if ($post) {
 
 												if ($cancel == "") { 
 												  if( $count_jour <= 0) {
+													if( $quantite >= 0) {
 												?>
 												<div class="et_pb_button_module_wrapper et_pb_button_0_wrapper  et_pb_module ">
 													<a class="et_pb_button et_pb_button_0 et_pb_bg_layout_light" href="?add-to-cart=<?php echo $produit->ID ?>&type_activite=<?php echo $_GET['type_activite'];?>" 
@@ -528,7 +529,8 @@ if ($post) {
 
 													<!-- <a class="et_pb_button et_pb_button_0 et_pb_bg_layout_light" href="https://assoguidz.com/boutique/visite-guidee-2020-2021/jardin-tuileries/">Réserver </a> -->
 												</div>
-												  <?php }
+													<?php }
+													}
 												  } ?>
 											</div>
 										</div> <!-- .et_pb_column -->

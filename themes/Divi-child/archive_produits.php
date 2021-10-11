@@ -22,6 +22,8 @@ $type = array(
 //isset($_GET['type_activite']) ? $_GET['type_activite'] : 'any'
 
 $activites = get_posts($type);
+$activites = tri_date( $activites);
+
 //var_dump($produits);
 //get_post_meta($post->ID, 'reserver', true) != null
 ?>
@@ -90,6 +92,24 @@ $activites = get_posts($type);
 															$image = get_post_meta($activite->ID, 'image', true);
 															$title = $activite->post_title;
 														?>
+														<?php 
+															$date_aujourdhui = date('Y-m-d', time());
+															$datetime_aujourdhui = date_create($date_aujourdhui);
+															$datetime_date = date_create($date);
+															$interval = date_diff($datetime_date, $datetime_aujourdhui);
+															$count_jour = $interval->format('%r%a'); // %r (negative and positive) %a(jour)
+															// echo $count_jour;
+															$quantite = get_post_meta($activite->ID, 'quantite', true);
+															$quantiteBooked = countParticipants( $activite);
+															if ($quantite != "") {
+																$quantite -= $quantiteBooked;
+															}
+															$cancel = get_post_meta($post->ID, 'cancel', true);
+															
+															if ($cancel == "") { 
+															  if( $count_jour <= 0) {
+																if( $quantite >= 0) {
+															?>
 														<a 
 															href="?add-to-cart=<?php echo $produit->ID ?>&type_activite=<?php echo $_GET['type_activite'];?>" 
 															data-quantity="1"
@@ -97,6 +117,7 @@ $activites = get_posts($type);
 															data-product_id==<?php echo $produit->ID ?>	
 															rel="nofollow"><span class="dashicons dashicons-cart"></span>
 														</a>
+															<?php }}} ?>
 														<span style="color:#2ea3f2;"><strong><?php echo " - " .TypeActivite($type_activite); ?></strong></span>
 													</div>
 												</div>
